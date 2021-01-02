@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from eschadmin.stocks import views
+import views
 
 urlpatterns = [
     path('', views.home)
