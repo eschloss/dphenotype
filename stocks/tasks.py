@@ -37,7 +37,7 @@ def send_vix_data():
     smtp = get_connection('django.core.mail.backends.smtp.EmailBackend', host=settings.SMTP_HOST,
                           port=settings.SMTP_PORT, username=settings.SMTP_USER, password=settings.SMTP_PASSWORD,
                           use_tls=settings.SMTP_USE_TLS)
-    subject = "^VIX diff @ %s" % str(diff)
+    subject = "^VIX diff @ %s" % str(round(diff, 4))
     text_content = "if >= 9, sell stocks"
     from_email = "stocks-eschadmin@ericschlossberg.com"
     email_list = ['orpheuskl@gmail.com']

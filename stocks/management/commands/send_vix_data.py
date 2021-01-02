@@ -5,6 +5,4 @@ import logging
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        send_vix_data() #can't get celery to work properly
-        logging.info("send_vix_data request made - celery")
-        print("send_vix_data request made - celery")
+        send_vix_data()  # can't get celery to work properly so calling directly
