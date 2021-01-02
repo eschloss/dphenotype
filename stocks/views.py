@@ -25,7 +25,7 @@ def home(request):
     #account.status
     """
 
-    vix = web.DataReader("^VIX", "yahoo", end - datetime.timedelta(hours=24), end)
+    vix = web.DataReader("^VIX", "yahoo", end - datetime.timedelta(hours=48), end)
     vix_high = vix["High"]
     vix_low = vix["Low"]
     vix_close = vix["Adj Close"]
