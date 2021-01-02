@@ -15,8 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from stocks import urls as stocks_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('stocks/', stocks.urls)
+    path('stocks/', stocks_urls)
 ]
