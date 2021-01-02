@@ -15,8 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from eschadmin.stocks import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('stocks/', eschadmin.stocks.urls)
+    path('', views.home)
 ]
