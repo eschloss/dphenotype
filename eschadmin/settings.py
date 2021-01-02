@@ -121,5 +121,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+CELERY_BROKER_URL = os.environ['REDIS_URL']
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = None
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
+CELERY_BROKER_POOL_LIMIT = 3
+
 # keep on bottom
 django_heroku.settings(locals())
