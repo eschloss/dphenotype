@@ -49,3 +49,4 @@ def send_vix_data():
         logging.error("Email Failed to Send smtp=%s" % (bool(smtp)))
         logging.error(e, exc_info=True)
 
+    logging.info("^vix task successfully run")
