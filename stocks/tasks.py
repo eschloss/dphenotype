@@ -57,7 +57,8 @@ def send_mail(subject, text_content, from_email="stocks-eschadmin@ericschlossber
 
 @shared_task
 def vix_near_threshold(threshold=6):
-    vix = web.DataReader("^VIX", "yahoo", end - datetime.timedelta(hours=48), end)
+    end = datetime.datetime.now()
+    vix = web.DataReader("^VIX", "yahoo", end - datetime.timedelta(hours=12), end)
     vix_high = vix["High"]
     vix_low = vix["Low"]
     diff = vix_high[0] - vix_low[0]
