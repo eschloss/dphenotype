@@ -34,12 +34,17 @@ def send_vix_data():
     vix_close = vix["Adj Close"]
     diff = vix_high[0] - vix_low[0]
 
+    subject = "^VIX diff @ %s" % str(round(diff, 4))
+    text_content = "if >= 9, sell stocks"
+    send_mail(subject, text_content)
+
+    logging.info("^vix task successfully run")
+
+
+def send_mail(subject, text_content, from_email="stocks-eschadmin@ericschlossberg.com"):
     smtp = get_connection('django.core.mail.backends.smtp.EmailBackend', host=settings.SMTP_HOST,
                           port=settings.SMTP_PORT, username=settings.SMTP_USER, password=settings.SMTP_PASSWORD,
                           use_tls=settings.SMTP_USE_TLS)
-    subject = "^VIX diff @ %s" % str(round(diff, 4))
-    text_content = "if >= 9, sell stocks"
-    from_email = "stocks-eschadmin@ericschlossberg.com"
     email_list = ['orpheuskl@gmail.com']
     msg = EmailMultiAlternatives(subject, text_content, from_email, email_list,
                                  connection=smtp, headers=SMTP_HEADERS)
@@ -49,4 +54,15 @@ def send_vix_data():
         logging.error("Email Failed to Send smtp=%s" % (bool(smtp)))
         logging.error(e, exc_info=True)
 
-    logging.info("^vix task successfully run")
+
+@shared_task
+def vix_near_threshold(threshold=6):
+    vix = web.DataReader("^VIX", "yahoo", end - datetime.timedelta(hours=48), end)
+    vix_high = vix["High"]
+    vix_low = vix["Low"]
+    diff = vix_high[0] - vix_low[0]
+    if diff >= threshold:
+        subject = "^VIX diff @ %s" % str(round(diff, 4))
+        text_content = "if >= 9, sell stocks"
+        send_mail(subject, text_content)
+
