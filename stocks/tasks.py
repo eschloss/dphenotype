@@ -56,14 +56,14 @@ def send_mail(subject, text_content, from_email="stocks-eschadmin@ericschlossber
 
 
 @shared_task
-def vix_near_threshold(threshold=6):
+def vix_near_threshold(threshold=7):
     end = datetime.datetime.now()
     vix = web.DataReader("^VIX", "yahoo", end - datetime.timedelta(hours=12), end)
     vix_high = vix["High"]
     vix_low = vix["Low"]
     diff = vix_high[0] - vix_low[0]
     if diff >= threshold:
-        subject = "^VIX diff @ %s" % str(round(diff, 4))
+        subject = "[ALERT] ^VIX diff @ %s" % str(round(diff, 4))
         text_content = "if >= 9, sell stocks"
         send_mail(subject, text_content)
 
