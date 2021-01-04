@@ -122,7 +122,17 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CELERY_BROKER_URL = os.environ['CLOUDAMQP_URL']
+CELERY_BROKER_URL = "sqs://"
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'region': 'us-east-1',
+    'polling_interval': 5,
+    'visibility_timeout': 7200,
+}
+CELERY_SEND_TASK_ERROR_EMAILS = True
+CELERY_TASK_DEFAULT_QUEUE = 'eschadmin'
+CELERY_WORKER_ENABLE_REMOTE_CONTROL = False
+CELERY_WORKER_SEND_TASK_EVENTS = False
+
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
