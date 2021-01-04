@@ -5,4 +5,4 @@ import logging
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        vix_near_threshold()  # can't get celery to work properly so calling directly
+        vix_near_threshold.delay()
