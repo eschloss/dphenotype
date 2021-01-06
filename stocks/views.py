@@ -26,10 +26,10 @@ def home(request):
     vix_high = vix["High"]
     vix_low = vix["Low"]
     vix_close = vix["Adj Close"]
-    response += "^VIX High: %s<br/>" % str(vix_high[0])
-    response += "^VIX Low: %s<br/>" % str(vix_low[0])
-    response += "^VIX Close: %s<br/>" % str(vix_close[0])
-    response += "^VIX Diff: %s<br/>" % str(vix_high[0] - vix_low[0])
+    response += "^VIX High: %s<br/>" % str(vix_high[-1])
+    response += "^VIX Low: %s<br/>" % str(vix_low[-1])
+    response += "^VIX Close: %s<br/>" % str(vix_close[-1])
+    response += "^VIX Diff: %s<br/>" % str(vix_high[-1] - vix_low[-1])
     response += "If ^VIX Diff is >= 9, sell<br/>"
 
     #return HttpResponse(str(upro))
