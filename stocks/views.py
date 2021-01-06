@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-import alpaca_trade_api as tradeapi #https://pypi.org/project/alpaca-trade-api/
+import alpaca_trade_api as tradeapi  # https://pypi.org/project/alpaca-trade-api/
 import pandas as pd
 import datetime
 import pandas_datareader.data as web
@@ -30,7 +30,17 @@ def home(request):
     response += "^VIX Low: %s<br/>" % str(vix_low[-1])
     response += "^VIX Close: %s<br/>" % str(vix_close[-1])
     response += "^VIX Diff: %s<br/>" % str(vix_high[-1] - vix_low[-1])
-    response += "If ^VIX Diff is >= 9, sell<br/>"
+    response += "<br/>If ^VIX Diff is >= 9, sell<br/>"
+
+    if vix_high[-1] - vix_low[-1] >= 9:
+        status_near = 'ALERT - Sell Stocks'
+    elif vix_high[-1] - vix_low[-1] > 6:
+        status_near = 'Warning'
+    else:
+        status_near = 'Low'
+
+    response += "<br/><br/>%s<br/>" % status_near
+
 
     #return HttpResponse(str(upro))
     return HttpResponse(response)
