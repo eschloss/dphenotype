@@ -46,7 +46,7 @@ def sector_strategy_1(sportfolio):
     sectors = {}
     for etf in sector_etfs:
         sectors[etf] = web.DataReader(etf, "yahoo", start, end)["Adj Close"]
-    spy_close = web.DataReader("SPY", "yahoo", start, end)["Adj Close"].rename("SPY")
+    eql_close = web.DataReader("EQL", "yahoo", start, end)["Adj Close"].rename("EQL")
 
     trading_login()
 
@@ -55,13 +55,13 @@ def sector_strategy_1(sportfolio):
     total = 0
     for etf in sector_etfs:
         sector = sectors[etf]
-        performance = sector[prev_index] / sector[comparison_index] - spy_close[prev_index] / spy_close[comparison_index]
-        performance2 = sector[prev_index] / sector[comparison_index2] - spy_close[prev_index] / spy_close[comparison_index2]
+        performance = sector[prev_index] / sector[comparison_index] - eql_close[prev_index] / eql_close[comparison_index]
+        performance2 = sector[prev_index] / sector[comparison_index2] - eql_close[prev_index] / eql_close[comparison_index2]
         if performance < 0 < performance2:
-            performance3 = sector[prev_index] / sector[comparison_index3] - spy_close[prev_index] / spy_close[comparison_index3]
-            performance4 = sector[prev_index] / sector[comparison_index4] - spy_close[prev_index] / spy_close[comparison_index4]
-            performance5 = sector[prev_index] / sector[comparison_index5] - spy_close[prev_index] / spy_close[comparison_index5]
-            performance6 = sector[prev_index] / sector[comparison_index6] - spy_close[prev_index] / spy_close[comparison_index6]
+            performance3 = sector[prev_index] / sector[comparison_index3] - eql_close[prev_index] / eql_close[comparison_index3]
+            performance4 = sector[prev_index] / sector[comparison_index4] - eql_close[prev_index] / eql_close[comparison_index4]
+            performance5 = sector[prev_index] / sector[comparison_index5] - eql_close[prev_index] / eql_close[comparison_index5]
+            performance6 = sector[prev_index] / sector[comparison_index6] - eql_close[prev_index] / eql_close[comparison_index6]
             underperforming_sectors.append(etf)
             mod_performance = -performance / (performance2 ** 2)
             if performance4 < 0:
@@ -88,7 +88,7 @@ def sector_strategy_1(sportfolio):
         for etf in underperforming_sectors:
             set_new_position(sportfolio, etf, sector_invest_pc[etf])
     else:
-        set_new_position(sportfolio, "SPY", 100.0)
+        set_new_position(sportfolio, "EQL", 100.0)
 
 
 STRATEGIES = {
@@ -99,8 +99,8 @@ STRATEGIES = {
 
 
 @shared_task
-def check_position_on_brokerage():
-    position = Position.objects.get(pk)
+def check_position_on_brokerage(pk):
+    position = Position.objects.get(pk=pk)
     position.settle()
 
 
@@ -114,7 +114,7 @@ def check_positions_on_brokerage():
 
 @shared_task
 def run_position_on_brokerage(pk):
-    position = Position.objects.get(pk)
+    position = Position.objects.get(pk=pk)
     position.run_position_on_brokerage()
 
 
