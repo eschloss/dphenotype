@@ -86,7 +86,6 @@ import dj_database_url
 DATABASES = {}
 DATABASES['default'] = dj_database_url.config()
 DATABASES['default']['CONN_MAX_AGE'] = None
-del DATABASES['default']['OPTIONS']['sslmode']
 
 
 # Password validation
@@ -169,4 +168,4 @@ RH_2Factor = os.environ['RH_2Factor']
 # keep on bottom
 if IS_PRODUCTION:
     django_heroku.settings(locals())
-
+    del DATABASES['default']['OPTIONS']['sslmode']
