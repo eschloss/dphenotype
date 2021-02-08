@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Sum
 import datetime
-from stocks.rh_utils import trading_login, get_stock_value_by_url, get_available_cash, get_stock_values_by_symbol_list, get_order_info
+from stocks.rh_utils import trading_login, get_available_cash, get_stock_values_by_symbol_list, get_order_info, fractional_order
 from stocks.eastern_time import EST5EDT
 from decimal import Decimal
 
@@ -75,13 +75,10 @@ class SubPortfolio(models.Model):
                     sp.reset_agg_pc_of_total(recursion=False)
 
     def get_allocated_cash_for_new_investments(self, logged_in=False):
-        if not logged_in:
-            trading_login()
-
-        cash = get_available_cash()
+        cash, created = CashAtDayStart.objects.get_or_create(userportfolio=up)
         sportfolios = self.userportfolio.subportfolio_set.all()
-        total_remaining_points = sportfolios.aggregate(Sum('points'))['points__sum']
-        return cash * self.points / Decimal(total_remaining_points)
+        total_points = sportfolios.aggregate(Sum('points'))['points__sum']
+        return cash.total * self.points / Decimal(total_points)
 
     def set_total(self, logged_in=False):
         if not logged_in:
@@ -155,21 +152,19 @@ class Position(models.Model):
         goal_total = sportfolio_total * self.goal_percentage
         amount_to_buy_in_dollars = goal_total - total
 
-        if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars < cash - self.subportfolio.blocked_cash:
+        if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars <= cash - self.subportfolio.blocked_cash:
             if amount_to_buy_in_dollars > 0:
                 self.subportfolio.blocked_cash += amount_to_buy_in_dollars
                 self.subportfolio.save()
 
             print("%s: $%s" % (self.sybmbol, str(amount_to_buy_in_dollars)))
 
-            """
             order = fractional_order(self.symbol, amount_to_buy_in_dollars)
             self.position_id = order['position']
             self.instrument_id = order['instrument']
             self.latest_order_id = order['id']
             self.placed_on_brokerage = True
             self.save()
-            """
 
     def settle(self, logged_in=False):
         if self.sold or not self.placed_on_brokerage or self.settled or not self.latest_order_id:
