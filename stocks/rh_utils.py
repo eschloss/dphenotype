@@ -39,9 +39,9 @@ def get_available_cash():
 
 def fractional_order(symbol, amount, extended_hours=True):
     if amount >= 1.00:
-        order = rs.orders.order_buy_fractional_by_price(symbol, amount, extendedHours=extended_hours)
+        order = rs.orders.order_buy_fractional_by_price(symbol, float(amount), extendedHours=extended_hours)
     elif amount <= 1.00:
-        order = rs.orders.order_sell_fractional_by_price(symbol, -amount, extendedHours=extended_hours)
+        order = rs.orders.order_sell_fractional_by_price(symbol, -float(amount), extendedHours=extended_hours)
 
     return order
 
