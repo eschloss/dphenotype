@@ -34,7 +34,13 @@ class SubPortfolioAdmin(admin.ModelAdmin):
         super(SubPortfolioAdmin, self).save_model(request, obj, form, change)
         obj.reset_agg_pc_of_total()
 
+
+class CashAtDayStartAdmin(admin.ModelAdmin):
+    list_display = ('userportfolio', 'total', 'agg_last_run')
+
+
 admin.site.register(UserPortfolio)
 admin.site.register(SubPortfolio, SubPortfolioAdmin)
 admin.site.register(Position, PositionAdmin)
 admin.site.register(TransactionLog)
+admin.site.register(CashAtDayStart, CashAtDayStartAdmin)
