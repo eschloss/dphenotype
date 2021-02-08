@@ -184,7 +184,7 @@ class Position(models.Model):
                 quantity = order['quantity']
             else:
                 quantity = -order['quantity']
-            self.current_quantity += quantity
+            self.current_quantity += Decimal(quantity)
             self.settled = True
             self.placed_on_brokerage = False
             if self.current_quantity == 0:
