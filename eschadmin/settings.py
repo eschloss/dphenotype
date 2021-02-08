@@ -82,11 +82,11 @@ WSGI_APPLICATION = 'eschadmin.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-#del DATABASES['default']['OPTIONS']['sslmode']
 import dj_database_url
 DATABASES = {}
-DATABASES['default'] =  dj_database_url.config()
+DATABASES['default'] = dj_database_url.config()
 DATABASES['default']['CONN_MAX_AGE'] = None
+del DATABASES['default']['OPTIONS']['sslmode']
 
 
 # Password validation
