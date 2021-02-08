@@ -206,3 +206,11 @@ def vix_near_threshold(threshold=7):
         text_content = "if >= 9, sell stocks"
         send_mail(subject, text_content)
 
+
+@shared_task
+def reset_totals():
+    sps = SubPortfolio.objects.filter(userportfolio__on=True)
+    trading_login()
+    for sp in sps:
+        sp.get_total(logged_in=True)
+
