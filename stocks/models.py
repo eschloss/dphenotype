@@ -23,8 +23,11 @@ class CashAtDayStart(models.Model):
         if not logged_in:
             trading_login()
 
-        self.total = get_available_cash()
-        self.save()
+        now = datetime.datetime.now(tz=EST5EDT())
+        if now.date() != self.agg_last_run.date():
+            self.agg_last_run = now
+            self.total = get_available_cash()
+            self.save()
 
 
 STRATEGIES = [
