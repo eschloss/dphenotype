@@ -31,7 +31,7 @@ except:
 SECRET_KEY = 'ah@2fd7hql9yqmp7ff+fwup7&-u#*l6547+j83a43&((-b2cvq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = not IS_PRODUCTION
 
 ALLOWED_HOSTS = []
 

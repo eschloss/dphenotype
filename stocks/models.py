@@ -75,7 +75,7 @@ class SubPortfolio(models.Model):
                     sp.reset_agg_pc_of_total(recursion=False)
 
     def get_allocated_cash_for_new_investments(self, logged_in=False):
-        cash, created = CashAtDayStart.objects.get_or_create(userportfolio=up)
+        cash, created = CashAtDayStart.objects.get_or_create(userportfolio=self.userportfolio)
         sportfolios = self.userportfolio.subportfolio_set.all()
         total_points = sportfolios.aggregate(Sum('points'))['points__sum']
         return cash.total * self.points / Decimal(total_points)
@@ -157,7 +157,7 @@ class Position(models.Model):
                 self.subportfolio.blocked_cash += amount_to_buy_in_dollars
                 self.subportfolio.save()
 
-            print("%s: $%s" % (self.sybmbol, str(amount_to_buy_in_dollars)))
+            print("%s: $%s" % (self.symbol, str(amount_to_buy_in_dollars)))
 
             order = fractional_order(self.symbol, amount_to_buy_in_dollars)
             self.position_id = order['position']
