@@ -10,7 +10,7 @@ from eschadmin import settings
 import logging
 from stocks.eastern_time import EST5EDT
 from celery import shared_task
-from stocks.models import SubPortfolio, Position, set_new_position
+from stocks.models import SubPortfolio, Position, set_new_position, CashAtDayStart, UserPortfolio
 
 
 SMTP_HEADERS = {'X-MC-Important': 'true'}
@@ -96,6 +96,13 @@ STRATEGIES = {
     '1': cash_strategy,
     '2': vti_strategy,
 }
+
+
+@shared_task
+def reset_userportfolio_cash():
+    for up in UserPortfolio.objects.filter(on=True):
+        cash, created = CashAtDayStart.objects.get_or_create(userportfolio=up)
+        cash.reset()
 
 
 @shared_task

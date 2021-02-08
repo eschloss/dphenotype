@@ -14,6 +14,19 @@ class UserPortfolio(models.Model):
     account_id = models.CharField(max_length=12)
 
 
+class CashAtDayStart(models.Model):
+    userportfolio = models.ForeignKey(UserPortfolio, on_delete=models.PROTECT)
+    total = models.DecimalField(decimal_places=8, max_digits=16, default=0)
+    agg_last_run = models.DateTimeField(default=LAUNCH_DATETIME)
+
+    def reset(self, logged_in=False):
+        if not logged_in:
+            trading_login()
+
+        self.total = get_available_cash()
+        self.save()
+
+
 STRATEGIES = [
     {
         "CODE": "0",
@@ -63,9 +76,7 @@ class SubPortfolio(models.Model):
             trading_login()
 
         cash = get_available_cash()
-        est_now = datetime.datetime.now(tz=EST5EDT())
-        today = est_now.replace(hour=0, minute=0, second=0, microsecond=0)
-        sportfolios = self.userportfolio.subportfolio_set.filter(agg_last_run__lt=today)
+        sportfolios = self.userportfolio.subportfolio_set.all()
         total_remaining_points = sportfolios.aggregate(Sum('points'))['points__sum']
         return cash * self.points / Decimal(total_remaining_points)
 
