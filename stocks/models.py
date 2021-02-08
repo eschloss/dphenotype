@@ -146,7 +146,7 @@ class Position(models.Model):
                 self.subportfolio.blocked_cash += amount_to_buy_in_dollars
                 self.subportfolio.save()
 
-            print(amount_to_buy_in_dollars)
+            print("%s: $%s" % (self.sybmbol, str(amount_to_buy_in_dollars)))
 
             """
             order = fractional_order(self.symbol, amount_to_buy_in_dollars)
@@ -158,7 +158,7 @@ class Position(models.Model):
             """
 
     def settle(self, logged_in=False):
-        if self.sold or not self.placed_on_brokerage or self.settled:
+        if self.sold or not self.placed_on_brokerage or self.settled or not self.latest_order_id:
             return
 
         if not logged_in:

@@ -99,6 +99,34 @@ STRATEGIES = {
 
 
 @shared_task
+def check_position_on_brokerage():
+    position = Position.objects.get(pk)
+    position.settle()
+
+
+@shared_task
+def check_positions_on_brokerage():
+    positions = Position.objects.filter(subportfolio__userportfolio__on=True,
+                                        sold=False, placed_on_brokerage=True, settled=False)
+    for p in positions:
+        check_position_on_brokerage.delay(p.pk)
+
+
+@shared_task
+def run_position_on_brokerage(pk):
+    position = Position.objects.get(pk)
+    position.run_position_on_brokerage()
+
+
+@shared_task
+def run_positions_on_brokerage():
+    positions = Position.objects.filter(subportfolio__userportfolio__on=True,
+                                        sold=False, placed_on_brokerage=False, settled=False)
+    for p in positions:
+        run_position_on_brokerage.delay(p.pk)
+
+
+@shared_task
 def run_subportfolios():
     est_now = datetime.datetime.now(tz=EST5EDT())
     today = est_now.replace(hour=0, minute=0, second=0, microsecond=0)
