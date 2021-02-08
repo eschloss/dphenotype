@@ -29,6 +29,9 @@ class CashAtDayStart(models.Model):
             self.total = get_available_cash()
             self.save()
 
+            self.userportfolio.subportfolio_set.all().update(blocked_cash=0)
+
+
 
 STRATEGIES = [
     {
@@ -174,7 +177,7 @@ class Position(models.Model):
             trading_login()
 
         order = get_order_info(self.latest_order_id)
-        if order['status'] == 'filled':
+        if order['state'] == 'filled':
             if order['side'] == 'buy':
                 self.subportfolio.blocked_cash -= Decimal(order['executed_notional']['amount'])
                 self.subportfolio.save()
