@@ -1,5 +1,6 @@
 from django.shortcuts import render
-import alpaca_trade_api as tradeapi #https://pypi.org/project/alpaca-trade-api/
+#import alpaca_trade_api as tradeapi #https://pypi.org/project/alpaca-trade-api/
+from stocks.rh_utils import trading_login
 import pandas as pd
 import datetime
 import pandas_datareader.data as web
@@ -7,26 +8,111 @@ from smtplib import SMTPException
 from django.core.mail import EmailMultiAlternatives, get_connection
 from eschadmin import settings
 import logging
+from stocks.eastern_time import EST5EDT
 from celery import shared_task
+from stocks.models import SubPortfolio, Position, set_new_position
 
 
 SMTP_HEADERS = {'X-MC-Important': 'true'}
 
 
+def cash_strategy(sportfolio):
+    positions = Position.objects.filter(subportfolio=sportfolio)
+    for p in positions:
+        set_new_position(sportfolio, p.symbol, 0.0)
+
+
+def vti_strategy(sportfolio):
+    positions = Position.objects.filter(subportfolio=sportfolio)
+    for p in positions:
+        if p.symbol.lower() != "vti":
+            set_new_position(sportfolio, p.symbol, 0.0)
+    set_new_position(sportfolio, 'vti', 1.0)
+
+
+def sector_strategy_1(sportfolio):
+    prev_index = -1
+    comparison_index = -5
+    comparison_index2 = -150
+    comparison_index3 = -100
+    comparison_index4 = -50
+    comparison_index5 = -125
+    comparison_index6 = -135
+
+    end = datetime.datetime.now(tz=EST5EDT())
+    start = end - datetime.timedelta(days=-comparison_index2 * 7 / 4)
+
+    sector_etfs = ["VGT", "VHT", "VNQ", "VAW", "VCR", "VFH", "VDE", "VIS", "VPU", "VDC", "VOX"]
+    sectors = {}
+    for etf in sector_etfs:
+        sectors[etf] = web.DataReader(etf, "yahoo", start, end)["Adj Close"]
+    spy_close = web.DataReader("SPY", "yahoo", start, end)["Adj Close"].rename("SPY")
+
+    trading_login()
+
+    underperforming_sectors = []
+    yesterdays_pc_change = {}
+    total = 0
+    for etf in sector_etfs:
+        sector = sectors[etf]
+        performance = sector[prev_index] / sector[comparison_index] - spy_close[prev_index] / spy_close[comparison_index]
+        performance2 = sector[prev_index] / sector[comparison_index2] - spy_close[prev_index] / spy_close[comparison_index2]
+        if performance < 0 < performance2:
+            performance3 = sector[prev_index] / sector[comparison_index3] - spy_close[prev_index] / spy_close[comparison_index3]
+            performance4 = sector[prev_index] / sector[comparison_index4] - spy_close[prev_index] / spy_close[comparison_index4]
+            performance5 = sector[prev_index] / sector[comparison_index5] - spy_close[prev_index] / spy_close[comparison_index5]
+            performance6 = sector[prev_index] / sector[comparison_index6] - spy_close[prev_index] / spy_close[comparison_index6]
+            underperforming_sectors.append(etf)
+            mod_performance = -performance / (performance2 ** 2)
+            if performance4 < 0:
+                mod_performance /= (-performance4)
+            if performance3 < 0:
+                mod_performance /= (-performance3)
+            if performance5 < 0:
+                mod_performance /= (-performance5)
+            if performance6 < 0:
+                mod_performance /= (-performance6)
+            yesterdays_pc_change[etf] = mod_performance
+            total += mod_performance
+
+    sector_invest_pc = {}
+    for etf in underperforming_sectors:
+        sector_invest_pc[etf] = yesterdays_pc_change[etf] / total
+
+    """ SELL OVERPERFORMING SECTORS """
+    for etf in filter(lambda a: a not in underperforming_sectors, sector_etfs):
+        set_new_position(sportfolio, etf, 0.0)
+
+    """ BUY/CHANGE QUANTITY OF UNDERPERFORMING SECTORS (OR SPY) """
+    if len(underperforming_sectors) > 0:
+        for etf in underperforming_sectors:
+            set_new_position(sportfolio, etf, sector_invest_pc[etf])
+    else:
+        set_new_position(sportfolio, "SPY", 100.0)
+
+
+STRATEGIES = {
+    '0': sector_strategy_1,
+    '1': cash_strategy,
+    '2': vti_strategy,
+}
+
+@shared_task
+def run_subportfolios():
+    est_now = datetime.datetime.now(tz=EST5EDT())
+    today = est_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    sportfolios = SubPortfolio.objects.filter(userportfolio__on=True, is_being_run_currently_lock=False, run_hour__lte=est_now, agg_last_run__lt=today)
+    for sp in sportfolios:
+        run_subportfolio.delay(sp.pk)  # TODO change to async and give time between the runs
+
+@shared_task
+def run_subportfolio(pk):
+    sportfolio = SubPortfolio.objects.get(pk=pk)
+    STRATEGIES[sportfolio.strategy](sportfolio)
+
 @shared_task
 def send_vix_data():
-    api = tradeapi.REST()
     end = datetime.datetime.now()
-    """
-    account = api.get_account()
-    start = end - datetime.timedelta(hours=12)
-    end_iso = end.isoformat()
-    start_iso = start.isoformat()
-    upro = api.get_barset(['UPRO', '^VIX'], 'day', start=start_iso, end=end_iso, limit=1)
-    #upro = api.get_last_trade('UPRO')
-    #api.list_positions()
-    #account.status
-    """
 
     vix = web.DataReader("^VIX", "yahoo", end - datetime.timedelta(hours=48), end)
     vix_high = vix["High"]

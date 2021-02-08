@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-import alpaca_trade_api as tradeapi  # https://pypi.org/project/alpaca-trade-api/
+from stocks.rh_utils import trading_login, get_positions
 import pandas as pd
 import datetime
 import pandas_datareader.data as web
@@ -9,18 +9,7 @@ import logging
 
 def home(request):
     response = ""
-    api = tradeapi.REST()
     end = datetime.datetime.now()
-    """
-    account = api.get_account()
-    start = end - datetime.timedelta(hours=12)
-    end_iso = end.isoformat()
-    start_iso = start.isoformat()
-    upro = api.get_barset(['UPRO', '^VIX'], 'day', start=start_iso, end=end_iso, limit=1)
-    #upro = api.get_last_trade('UPRO')
-    #api.list_positions()
-    #account.status
-    """
 
     vix = web.DataReader("^VIX", "yahoo", end - datetime.timedelta(hours=48), end)
     vix_high = vix["High"]
@@ -41,6 +30,9 @@ def home(request):
 
     response += "<br/><br/>%s<br/>" % status_near
 
+    trading_login()
+    positions = get_positions()
 
-    #return HttpResponse(str(upro))
+    response += "<br/>%s" % str(positions[0:3])
+
     return HttpResponse(response)

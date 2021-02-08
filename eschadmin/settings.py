@@ -17,6 +17,12 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+IS_PRODUCTION = False
+try:
+    if os.environ['BUILD'] == "PRODUCTION":
+        IS_PRODUCTION = True
+except:
+    pass
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -156,5 +162,12 @@ SMTP_USER = CLOUDMAILIN_USERNAME
 SMTP_PASSWORD = CLOUDMAILIN_PASSWORD
 SMTP_USE_TLS = CLOUDMAILIN_EMAIL_USE_TLS
 
+#RH
+RH_USERNAME = os.environ['RH_USERNAME']
+RH_PASSWORD = os.environ['RH_PASSWORD']
+RH_2Factor = os.environ['RH_2Factor']
+
 # keep on bottom
-django_heroku.settings(locals())
+if IS_PRODUCTION:
+    django_heroku.settings(locals())
+
