@@ -40,7 +40,7 @@ class SubPortfolio(models.Model):
     strategy = models.CharField(max_length=3, choices=STRATEGY_CHOICES)
     points = models.IntegerField(default=1)  # how many points does this strategy get relative to other subportfolios strategies
     notes = models.TextField(blank=True, null=True)
-    run_hour = models.FloatField(default=15.9)
+    run_hour = models.FloatField(default=.95)  # as percent of trading day.
     is_being_run_currently_lock = models.BooleanField(default=False)
     agg_pc_of_total = models.FloatField(default=1)  # what pc of user's new investments should go into this subportfolios
     agg_last_run = models.DateTimeField(default=LAUNCH_DATETIME)

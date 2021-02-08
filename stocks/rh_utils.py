@@ -1,7 +1,8 @@
 import robin_stocks as rs
-import pyotp
+import pyotp, datetime
 from eschadmin.settings import RH_USERNAME, RH_PASSWORD, RH_2Factor
 from decimal import Decimal
+from stocks.eastern_time import EST5EDT
 
 
 def trading_login():
@@ -48,3 +49,19 @@ def fractional_order(symbol, amount, extended_hours=True):
 def get_order_info(order_id):
     order = rs.orders.get_stock_order_info(order_id)
     return order
+
+
+def get_todays_hours():
+    est_now = datetime.datetime.now(tz=EST5EDT())
+    data = rs.markets.get_market_hours('XNYS', est_now.date().isoformat())
+    open_str = data['opens_at']
+    close_str = data['closes_at']
+    open_time = datetime.datetime.strptime(open_str, '%Y-%m-%dT%H:%M:%SZ')
+    close_time = datetime.datetime.strptime(close_str, '%Y-%m-%dT%H:%M:%SZ')
+    return open_time.astimezone(tz=EST5EDT()), close_time.astimezone(tz=EST5EDT())
+
+
+def is_market_open():
+    est_now = datetime.datetime.now(tz=EST5EDT())
+    data = rs.markets.get_market_hours('XNYS', est_now.date().isoformat())
+    return data['is_open']

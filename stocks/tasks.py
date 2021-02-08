@@ -1,6 +1,6 @@
 from django.shortcuts import render
 #import alpaca_trade_api as tradeapi #https://pypi.org/project/alpaca-trade-api/
-from stocks.rh_utils import trading_login
+from stocks.rh_utils import *
 import pandas as pd
 import datetime
 import pandas_datareader.data as web
@@ -97,18 +97,36 @@ STRATEGIES = {
     '2': vti_strategy,
 }
 
+
 @shared_task
 def run_subportfolios():
     est_now = datetime.datetime.now(tz=EST5EDT())
     today = est_now.replace(hour=0, minute=0, second=0, microsecond=0)
-    sportfolios = SubPortfolio.objects.filter(userportfolio__on=True, is_being_run_currently_lock=False, run_hour__lte=est_now, agg_last_run__lt=today)
+
+    trading_login()
+    (open, close) = get_todays_hours()
+
+    fraction_of_day = (est_now - open)/(close - open)
+
+    sportfolios = SubPortfolio.objects.filter(userportfolio__on=True, is_being_run_currently_lock=False,
+                                              run_hour__lte=fraction_of_day, agg_last_run__lt=today)
     for sp in sportfolios:
-        run_subportfolio.delay(sp.pk)  # TODO change to async and give time between the runs
+        run_subportfolio.delay(sp.pk)
+
 
 @shared_task
 def run_subportfolio(pk):
     sportfolio = SubPortfolio.objects.get(pk=pk)
+    sportfolio.is_being_run_currently_lock = True
+    sportfolio.save()
+
     STRATEGIES[sportfolio.strategy](sportfolio)
+
+    est_now = datetime.datetime.now(tz=EST5EDT())
+    sportfolio.agg_last_run = est_now
+    sportfolio.is_being_run_currently_lock = False
+    sportfolio.save()
+
 
 @shared_task
 def send_vix_data():
