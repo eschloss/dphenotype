@@ -22,6 +22,6 @@ class Command(BaseCommand):
                 run_positions_on_brokerage.apply_async(countdown=4*60)
                 run_positions_on_brokerage.apply_async(countdown=6*60)
                 run_positions_on_brokerage.apply_async(countdown=8*60)
-                check_positions_on_brokerage.apply_async(countdown=10*60)
+                check_positions_on_brokerage.apply_async(countdown=9*60)
 
 
