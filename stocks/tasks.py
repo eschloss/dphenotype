@@ -106,7 +106,7 @@ def reset_userportfolio_cash():
     for up in UserPortfolio.objects.filter(on=True):
         cash, created = CashAtDayStart.objects.get_or_create(userportfolio=up)
         cash.reset()
-    Position.objects.filter(amount_blocked__gt=0).update(amount_blocked=0)
+    Position.objects.exclude(amount_blocked=0).update(amount_blocked=0)
 
 
 @shared_task

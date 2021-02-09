@@ -234,7 +234,7 @@ class Position(models.Model):
             if order['side'] == 'buy':
                 self.amount_blocked = 0
             else:
-                self.amount_blocked = Decimal(order['total_notional']['amount'])
+                self.amount_blocked = -Decimal(order['total_notional']['amount'])
 
             self.current_quantity = current_quantity
             self.settled_percentage = self.goal_percentage
