@@ -120,7 +120,7 @@ class SubPortfolio(models.Model):
         return self.agg_total
 
     def get_blocked_cash(self):
-        blocked_positions = Position.objects.filter(subportfolio=self, sold=False, settled=False, placed_on_brokerage=True)
+        blocked_positions = Position.objects.filter(subportfolio=self)
         if len(blocked_positions) > 0:
             blocked_cash = Decimal(blocked_positions.aggregate(Sum('amount_blocked'))['amount_blocked__sum'])
         else:
@@ -224,15 +224,17 @@ class Position(models.Model):
 
         if order['state'] == 'filled' and TransactionLog.objects.filter(order_id=self.latest_order_id).count() == 0:
             if order['side'] == 'buy':
-                quantity = order['quantity']
+                quantity = Decimal(order['quantity'])
             else:
-                quantity = -order['quantity']
-            current_quantity = self.current_quantity + Decimal(quantity)
+                quantity = -Decimal(order['quantity'])
+            current_quantity = self.current_quantity + quantity
             tl = TransactionLog(subportfolio=self.subportfolio, symbol=self.symbol, quantity=current_quantity, date=est_now, order_id=self.latest_order_id)
             tl.save()
 
             if order['side'] == 'buy':
                 self.amount_blocked = 0
+            else:
+                self.amount_blocked = Decimal(order['total_notional']['amount'])
 
             self.current_quantity = current_quantity
             self.settled_percentage = self.goal_percentage
