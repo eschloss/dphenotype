@@ -187,13 +187,18 @@ class Position(models.Model):
 
             print("%s: $%s" % (self.symbol, str(amount_to_buy_in_dollars)))
 
-            order = fractional_order(self.symbol, amount_to_buy_in_dollars)
-            self.position_id = order['position']
-            self.instrument_id = order['instrument']
-            self.latest_order_id = order['id']
-            self.placed_on_brokerage = True
-            self.save()
-            queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
+            if amount_to_buy_in_dollars != 0:
+                order = fractional_order(self.symbol, amount_to_buy_in_dollars)
+                self.position_id = order['position']
+                self.instrument_id = order['instrument']
+                self.latest_order_id = order['id']
+                self.placed_on_brokerage = True
+                self.save()
+                queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
+            else:
+                self.settled = True
+                self.placed_on_brokerage = False
+                self.save()
         else:
             queue_run_position_on_brokerage.apply_async((self.pk,), countdown=5)
 
@@ -237,8 +242,6 @@ class Position(models.Model):
 def set_new_position(sportfolio, symbol, goal_percentage):
     try:
         p = Position.objects.get(subportfolio=sportfolio, symbol=symbol, sold=False)
-        if p.goal_percentage == goal_percentage:
-            return
     except:
         if goal_percentage == 0.0:
             return
