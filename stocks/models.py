@@ -1,7 +1,8 @@
 from django.db import models
 from django.db.models import Sum
 import datetime
-from stocks.rh_utils import trading_login, get_available_cash, get_stock_values_by_symbol_list, get_order_info, fractional_order
+from stocks.rh_utils import trading_login, get_available_cash, get_stock_values_by_symbol_list, get_order_info, \
+    fractional_order, sell_all_fractional_order
 from stocks.eastern_time import EST5EDT
 from decimal import Decimal
 from celery import shared_task
@@ -197,7 +198,10 @@ class Position(models.Model):
 
                 print("%s: $%s" % (self.symbol, str(amount_to_buy_in_dollars)))
 
-                order = fractional_order(self.symbol, amount_to_buy_in_dollars)
+                if self.goal_percentage == 0 and self.current_quantity > 0:
+                    order = sell_all_fractional_order(self.symbol, self.current_quantity)
+                else:
+                    order = fractional_order(self.symbol, amount_to_buy_in_dollars)
                 self.position_id = order['position']
                 self.instrument_id = order['instrument']
                 self.latest_order_id = order['id']

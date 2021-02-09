@@ -42,7 +42,11 @@ def fractional_order(symbol, amount, extended_hours=True):
         order = rs.orders.order_buy_fractional_by_price(symbol, float(amount), extendedHours=extended_hours)
     elif amount <= 1.00:
         order = rs.orders.order_sell_fractional_by_price(symbol, -float(amount), extendedHours=extended_hours)
+    return order
 
+
+def sell_all_fractional_order(symbol, quantity, extended_hours=True):
+    order = rs.orders.order_sell_fractional_by_quantity(symbol, float(quantity), extendedHours=extended_hours)
     return order
 
 
