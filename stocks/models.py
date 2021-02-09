@@ -162,6 +162,9 @@ class Position(models.Model):
     agg_total_last_set = models.DateTimeField(default=LAUNCH_DATETIME)
     amount_blocked = models.DecimalField(decimal_places=8, max_digits=16, default=0)
 
+    def __subportfolio__(self):
+        return self.subportfolio.__unicode__()
+
     def __unicode__(self):
         return "%s - %s" % (self.subportfolio.__unicode__(), self.symbol)
 
@@ -276,11 +279,17 @@ class TransactionLog(models.Model):
     date = models.DateTimeField()
     order_id = models.CharField(max_length=50)
 
+    def __subportfolio__(self):
+        return self.subportfolio.__unicode__()
+
 
 class TotalLog(models.Model):
     subportfolio = models.ForeignKey(SubPortfolio, on_delete=models.PROTECT)
     total = models.DecimalField(decimal_places=8, max_digits=16)
     date = models.DateTimeField()
+
+    def __subportfolio__(self):
+        return self.subportfolio.__unicode__()
 
 
 

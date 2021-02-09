@@ -16,7 +16,7 @@ try_to_settle.short_description = "Try to settle the position"
 
 
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'symbol', 'current_quantity', 'goal_percentage',
+    list_display = ('__subportfolio__', 'symbol', 'current_quantity', 'goal_percentage',
                     'settled_percentage', 'agg_total', 'last_edit_date', 'placed_on_brokerage', 'settled', 'sold',)
     list_filter = ('sold', 'settled', 'placed_on_brokerage',)
     actions = (run_position_on_brokerage, try_to_settle, )
@@ -48,11 +48,11 @@ class CashAtDayStartAdmin(admin.ModelAdmin):
 
 
 class TransactionLogAdmin(admin.ModelAdmin):
-    list_display = ('subportfolio', 'symbol', 'quantity', 'date', 'order_id')
+    list_display = ('__subportfolio__', 'symbol', 'quantity', 'date', 'order_id')
 
 
 class TotalLogAdmin(admin.ModelAdmin):
-    list_display = ('subportfolio', 'date', 'total')
+    list_display = ('__subportfolio__', 'date', 'total')
     list_filter = ('subportfolio', 'date')
 
 
