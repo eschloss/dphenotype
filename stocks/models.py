@@ -119,6 +119,13 @@ class SubPortfolio(models.Model):
             self.set_total(logged_in=True)
         return self.agg_total
 
+    def get_blocked_cash(self):
+        blocked_cash = Decimal(Position.objects.filter(subportfolio=self, sold=False, settled=False, placed_on_brokerage=True).aggregate(Sum('amount_blocked'))['amount_blocked__sum'])
+        if blocked_cash != self.blocked_cash:
+            self.blocked_cash = blocked_cash
+            self.save()
+        return blocked_cash
+
 
 @shared_task
 def queue_run_position_on_brokerage(pk):
@@ -178,21 +185,21 @@ class Position(models.Model):
         goal_total = sportfolio_total * self.goal_percentage
         amount_to_buy_in_dollars = goal_total - total
 
-        if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars <= cash - self.subportfolio.blocked_cash:
-            if amount_to_buy_in_dollars > 0:
-                self.amount_blocked = amount_to_buy_in_dollars
-                self.subportfolio.blocked_cash += amount_to_buy_in_dollars
-                self.subportfolio.save()
-
-            print("%s: $%s" % (self.symbol, str(amount_to_buy_in_dollars)))
-
+        if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars <= cash - self.subportfolio.get_blocked_cash():
             if amount_to_buy_in_dollars != 0:
+                if amount_to_buy_in_dollars > 0:
+                    self.amount_blocked = amount_to_buy_in_dollars
+                    self.save()
+
+                print("%s: $%s" % (self.symbol, str(amount_to_buy_in_dollars)))
+
                 order = fractional_order(self.symbol, amount_to_buy_in_dollars)
                 self.position_id = order['position']
                 self.instrument_id = order['instrument']
                 self.latest_order_id = order['id']
                 self.placed_on_brokerage = True
                 self.save()
+
                 queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
             else:
                 self.settled = True
@@ -221,9 +228,6 @@ class Position(models.Model):
             tl.save()
 
             if order['side'] == 'buy':
-                # self.subportfolio.blocked_cash -= Decimal(order['executed_notional']['amount'])
-                self.subportfolio.blocked_cash -= self.amount_blocked
-                self.subportfolio.save()
                 self.amount_blocked = 0
 
             self.current_quantity = current_quantity
@@ -233,6 +237,7 @@ class Position(models.Model):
             if self.current_quantity == 0:
                 self.sold = True
             self.save()
+            self.subportfolio.get_blocked_cash()
 
         else:
             queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
