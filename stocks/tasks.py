@@ -89,7 +89,7 @@ def sector_strategy_1(sportfolio):
         for etf in underperforming_sectors:
             set_new_position(sportfolio, etf, sector_invest_pc[etf])
     else:
-        set_new_position(sportfolio, "EQL", 100.0)
+        set_new_position(sportfolio, "EQL", 1.0)
 
 
 STRATEGIES = {

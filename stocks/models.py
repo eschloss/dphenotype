@@ -249,6 +249,7 @@ def set_new_position(sportfolio, symbol, goal_percentage):
     p.settled = False
     p.placed_on_brokerage = False
     p.save()
+    queue_run_position_on_brokerage.apply_async((p.pk,), countdown=0)
 
 
 class TransactionLog(models.Model):
