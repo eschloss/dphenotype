@@ -10,7 +10,7 @@ from eschadmin import settings
 import logging
 from stocks.eastern_time import EST5EDT
 from celery import shared_task
-from stocks.models import queue_run_position_on_brokerage, queue_check_position_on_brokerage, SubPortfolio, Position, set_new_position, CashAtDayStart, UserPortfolio
+from stocks.models import TotalLog, queue_run_position_on_brokerage, queue_check_position_on_brokerage, SubPortfolio, Position, set_new_position, CashAtDayStart, UserPortfolio
 from django.db.models import F
 
 
@@ -151,6 +151,7 @@ def run_subportfolio(pk):
     sportfolio = SubPortfolio.objects.get(pk=pk)
     sportfolio.is_being_run_currently_lock = True
     sportfolio.save()
+    sportfolio.get_total()
 
     STRATEGIES[sportfolio.strategy](sportfolio)
 
@@ -210,4 +211,17 @@ def reset_totals():
     trading_login()
     for sp in sps:
         sp.get_total(logged_in=True)
+
+
+@shared_task
+def store_total_logs():
+    est_now = datetime.datetime.now(tz=EST5EDT())
+    yesterday = est_now - datetime.timedelta(hours=20)
+    sps = SubPortfolio.objects.filter(userportfolio__on=True)
+    trading_login()
+    for sp in sps:
+        if TotalLog.objects.filter(subportfolio=sp, date__gte=yesterday).count() == 0:
+            total = sp.get_total(logged_in=True)
+            tl = TotalLog(subportfolio=sp, total=total, date=est_now)
+            tl.save()
 

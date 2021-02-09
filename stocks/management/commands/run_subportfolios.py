@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from stocks.tasks import reset_totals, run_subportfolios, check_positions_on_brokerage, run_positions_on_brokerage
+from stocks.tasks import run_subportfolios, check_positions_on_brokerage, run_positions_on_brokerage
 from stocks.eastern_time import EST5EDT
 import datetime
 from stocks.rh_utils import is_market_open, trading_login
@@ -12,7 +12,6 @@ class Command(BaseCommand):
         weekday = now.weekday()
         if weekday < 5:
             trading_login()
-            reset_totals.delay()
             if is_market_open():
                 run_subportfolios.apply_async(countdown=0)
                 run_subportfolios.apply_async(countdown=5*60)

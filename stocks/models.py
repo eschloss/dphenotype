@@ -114,7 +114,7 @@ class SubPortfolio(models.Model):
         self.save()
 
     def get_total(self, logged_in=False):
-        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=5):
+        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=60):
             if not logged_in:
                 trading_login()
             self.set_total(logged_in=True)
@@ -171,7 +171,7 @@ class Position(models.Model):
         self.subportfolio.set_total(logged_in=True)
 
     def get_total(self, logged_in=False):
-        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=5):
+        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=60):
             if not logged_in:
                 trading_login()
             self.set_total(logged_in=True)
@@ -275,5 +275,12 @@ class TransactionLog(models.Model):
     quantity = models.DecimalField(decimal_places=8, max_digits=16) #positive for buy, negative for sell
     date = models.DateTimeField()
     order_id = models.CharField(max_length=50)
+
+
+class TotalLog(models.Model):
+    subportfolio = models.ForeignKey(SubPortfolio, on_delete=models.PROTECT)
+    total = models.DecimalField(decimal_places=8, max_digits=16)
+    date = models.DateTimeField()
+
 
 
