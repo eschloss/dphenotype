@@ -120,7 +120,11 @@ class SubPortfolio(models.Model):
         return self.agg_total
 
     def get_blocked_cash(self):
-        blocked_cash = Decimal(Position.objects.filter(subportfolio=self, sold=False, settled=False, placed_on_brokerage=True).aggregate(Sum('amount_blocked'))['amount_blocked__sum'])
+        blocked_positions = Position.objects.filter(subportfolio=self, sold=False, settled=False, placed_on_brokerage=True)
+        if len(blocked_positions) > 0:
+            blocked_cash = Decimal(blocked_positions.aggregate(Sum('amount_blocked'))['amount_blocked__sum'])
+        else:
+            blocked_cash = 0
         if blocked_cash != self.blocked_cash:
             self.blocked_cash = blocked_cash
             self.save()
