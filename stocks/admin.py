@@ -28,9 +28,15 @@ def run_strategy(modeladmin, request, queryset):
 run_strategy.short_description = "Run Portfolio Strategy"
 
 
+def reset_blocked_cash(modeladmin, request, queryset):
+    for q in queryset:
+       q.get_blocked_cash()
+reset_blocked_cash.short_description = "Reset Blocked Cash"
+
+
 class SubPortfolioAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'userportfolio', 'strategy', 'agg_total', 'agg_last_run')
-    actions = (run_strategy, )
+    actions = (run_strategy, reset_blocked_cash, )
 
     def save_model(self, request, obj, form, change):
         super(SubPortfolioAdmin, self).save_model(request, obj, form, change)
