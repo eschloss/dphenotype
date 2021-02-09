@@ -194,7 +194,9 @@ class Position(models.Model):
             if amount_to_buy_in_dollars != 0:
                 if amount_to_buy_in_dollars > 0:
                     self.amount_blocked = amount_to_buy_in_dollars
-                    self.save()
+                else:
+                    self.amount_blocked = 0
+                self.save()
 
                 print("%s: $%s" % (self.symbol, str(amount_to_buy_in_dollars)))
 
