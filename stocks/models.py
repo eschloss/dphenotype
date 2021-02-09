@@ -149,6 +149,7 @@ class Position(models.Model):
     instrument_id = models.URLField(blank=True, null=True)
     agg_total = models.DecimalField(decimal_places=8, max_digits=16, default=0)
     agg_total_last_set = models.DateTimeField(default=LAUNCH_DATETIME)
+    amount_blocked = models.DecimalField(decimal_places=8, max_digits=16, default=0)
 
     def __unicode__(self):
         return "%s - %s" % (self.subportfolio.__unicode__(), self.symbol)
@@ -180,6 +181,7 @@ class Position(models.Model):
 
         if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars <= cash - self.subportfolio.blocked_cash:
             if amount_to_buy_in_dollars > 0:
+                self.amount_blocked = amount_to_buy_in_dollars
                 self.subportfolio.blocked_cash += amount_to_buy_in_dollars
                 self.subportfolio.save()
 
@@ -215,8 +217,10 @@ class Position(models.Model):
             tl.save()
 
             if order['side'] == 'buy':
-                self.subportfolio.blocked_cash -= Decimal(order['executed_notional']['amount'])
+                # self.subportfolio.blocked_cash -= Decimal(order['executed_notional']['amount'])
+                self.subportfolio.blocked_cash -= self.amount_blocked
                 self.subportfolio.save()
+                self.amount_blocked = 0
 
             self.current_quantity = current_quantity
             self.settled_percentage = self.goal_percentage
