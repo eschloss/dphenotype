@@ -27,7 +27,7 @@ def vti_strategy(sportfolio):
     for p in positions:
         if p.symbol.lower() != "vti":
             set_new_position(sportfolio, p.symbol, 0.0)
-    set_new_position(sportfolio, 'vti', 1.0)
+    set_new_position(sportfolio, 'VTI', 1.0)
 
 
 def sector_strategy_1(sportfolio):
