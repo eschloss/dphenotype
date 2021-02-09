@@ -16,7 +16,9 @@ try_to_settle.short_description = "Try to settle the position"
 
 
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ('subportfolio', 'symbol', 'current_quantity', 'goal_percentage', 'settled_percentage', 'agg_total', 'placed_on_brokerage', 'settled', 'sold')
+    list_display = ('__unicode__', 'symbol', 'current_quantity', 'goal_percentage',
+                    'settled_percentage', 'agg_total', 'last_edit_date', 'placed_on_brokerage', 'settled', 'sold',)
+    list_filter = ('sold', 'settled', 'placed_on_brokerage',)
     actions = (run_position_on_brokerage, try_to_settle, )
 
 
@@ -27,7 +29,7 @@ run_strategy.short_description = "Run Portfolio Strategy"
 
 
 class SubPortfolioAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'userportfolio', 'strategy', 'agg_total')
+    list_display = ('__unicode__', 'userportfolio', 'strategy', 'agg_total', 'agg_last_run')
     actions = (run_strategy, )
 
     def save_model(self, request, obj, form, change):
@@ -39,8 +41,12 @@ class CashAtDayStartAdmin(admin.ModelAdmin):
     list_display = ('userportfolio', 'total', 'agg_last_run')
 
 
+class TransactionLogAdmin(admin.ModelAdmin):
+    list_display = ('subportfolio', 'symbol', 'quantity', 'date', 'order_id')
+
+
 admin.site.register(UserPortfolio)
 admin.site.register(SubPortfolio, SubPortfolioAdmin)
 admin.site.register(Position, PositionAdmin)
-admin.site.register(TransactionLog)
+admin.site.register(TransactionLog, TransactionLogAdmin)
 admin.site.register(CashAtDayStart, CashAtDayStartAdmin)

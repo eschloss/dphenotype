@@ -150,6 +150,9 @@ class Position(models.Model):
     agg_total = models.DecimalField(decimal_places=8, max_digits=16, default=0)
     agg_total_last_set = models.DateTimeField(default=LAUNCH_DATETIME)
 
+    def __unicode__(self):
+        return "%s - %s" % (self.subportfolio.__unicode__(), self.symbol)
+
     def set_total(self, logged_in=False):
         if not logged_in:
             trading_login()
@@ -199,15 +202,23 @@ class Position(models.Model):
         if not logged_in:
             trading_login()
 
+        est_now = datetime.datetime.now(tz=EST5EDT())
         order = get_order_info(self.latest_order_id)
-        if order['state'] == 'filled':
+
+        if order['state'] == 'filled' and TransactionLog.objects.filter(order_id=self.latest_order_id).count() == 0:
             if order['side'] == 'buy':
-                self.subportfolio.blocked_cash -= Decimal(order['executed_notional']['amount'])
-                self.subportfolio.save()
                 quantity = order['quantity']
             else:
                 quantity = -order['quantity']
-            self.current_quantity += Decimal(quantity)
+            current_quantity = self.current_quantity + Decimal(quantity)
+            tl = TransactionLog(subportfolio=self.subportfolio, symbol=self.symbol, quantity=current_quantity, date=est_now, order_id=self.latest_order_id)
+            tl.save()
+
+            if order['side'] == 'buy':
+                self.subportfolio.blocked_cash -= Decimal(order['executed_notional']['amount'])
+                self.subportfolio.save()
+
+            self.current_quantity = current_quantity
             self.settled_percentage = self.goal_percentage
             self.settled = True
             self.placed_on_brokerage = False
@@ -215,9 +226,6 @@ class Position(models.Model):
                 self.sold = True
             self.save()
 
-            est_now = datetime.datetime.now(tz=EST5EDT())
-            tl = TransactionLog(subportfolio=self.subportfolio, symbol=self.symbol, quantity=self.current_quantity, date=est_now, order_id=self.latest_order_id)
-            tl.save()
         else:
             queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
 
