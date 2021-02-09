@@ -16,7 +16,7 @@ try_to_settle.short_description = "Try to settle the position"
 
 
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ('subportfolio', 'symbol', 'current_quantity', 'goal_percentage', 'agg_total', 'placed_on_brokerage', 'settled', 'sold')
+    list_display = ('subportfolio', 'symbol', 'current_quantity', 'goal_percentage', 'settled_percentage', 'agg_total', 'placed_on_brokerage', 'settled', 'sold')
     actions = (run_position_on_brokerage, try_to_settle, )
 
 

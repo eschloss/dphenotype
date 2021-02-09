@@ -118,6 +118,7 @@ class Position(models.Model):
     subportfolio = models.ForeignKey(SubPortfolio, on_delete=models.PROTECT)
     symbol = models.CharField(max_length=15)
     current_quantity = models.DecimalField(decimal_places=8, max_digits=16, default=0)
+    settled_percentage = models.DecimalField(decimal_places=8, max_digits=9, default=0)
     goal_percentage = models.DecimalField(decimal_places=8, max_digits=9)
     first_transaction_date = models.DateTimeField(auto_now_add=True)
     last_edit_date = models.DateTimeField(auto_now=True)
@@ -185,6 +186,7 @@ class Position(models.Model):
             else:
                 quantity = -order['quantity']
             self.current_quantity += Decimal(quantity)
+            self.settled_percentage = self.goal_percentage
             self.settled = True
             self.placed_on_brokerage = False
             if self.current_quantity == 0:
