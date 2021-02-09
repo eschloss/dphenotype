@@ -4,6 +4,7 @@ import datetime
 from stocks.rh_utils import trading_login, get_available_cash, get_stock_values_by_symbol_list, get_order_info, fractional_order
 from stocks.eastern_time import EST5EDT
 from decimal import Decimal
+from celery import shared_task
 
 LAUNCH_DATETIME = datetime.datetime(2014, 9, 12, 11, 19, 54)
 
@@ -120,6 +121,18 @@ class SubPortfolio(models.Model):
         return self.agg_total
 
 
+@shared_task
+def queue_run_position_on_brokerage(pk):
+    position = Position.objects.get(pk=pk)
+    position.run_position_on_brokerage()
+
+
+@shared_task
+def queue_check_position_on_brokerage(pk):
+    position = Position.objects.get(pk=pk)
+    position.settle()
+
+
 class Position(models.Model):
     subportfolio = models.ForeignKey(SubPortfolio, on_delete=models.PROTECT)
     symbol = models.CharField(max_length=15)
@@ -175,6 +188,9 @@ class Position(models.Model):
             self.latest_order_id = order['id']
             self.placed_on_brokerage = True
             self.save()
+            queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
+        else:
+            queue_run_position_on_brokerage.apply_async((self.pk,), countdown=5)
 
     def settle(self, logged_in=False):
         if self.sold or not self.placed_on_brokerage or self.settled or not self.latest_order_id:
@@ -202,6 +218,8 @@ class Position(models.Model):
             est_now = datetime.datetime.now(tz=EST5EDT())
             tl = TransactionLog(subportfolio=self.subportfolio, symbol=self.symbol, quantity=self.current_quantity, date=est_now, order_id=self.latest_order_id)
             tl.save()
+        else:
+            queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
 
 
 def set_new_position(sportfolio, symbol, goal_percentage):

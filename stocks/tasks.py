@@ -10,7 +10,8 @@ from eschadmin import settings
 import logging
 from stocks.eastern_time import EST5EDT
 from celery import shared_task
-from stocks.models import SubPortfolio, Position, set_new_position, CashAtDayStart, UserPortfolio
+from stocks.models import queue_run_position_on_brokerage, queue_check_position_on_brokerage, SubPortfolio, Position, set_new_position, CashAtDayStart, UserPortfolio
+from django.db.models import F
 
 
 SMTP_HEADERS = {'X-MC-Important': 'true'}
@@ -106,31 +107,24 @@ def reset_userportfolio_cash():
 
 
 @shared_task
-def check_position_on_brokerage(pk):
-    position = Position.objects.get(pk=pk)
-    position.settle()
-
-
-@shared_task
 def check_positions_on_brokerage():
     positions = Position.objects.filter(subportfolio__userportfolio__on=True,
                                         sold=False, placed_on_brokerage=True, settled=False)
     for p in positions:
-        check_position_on_brokerage.delay(p.pk)
-
-
-@shared_task
-def run_position_on_brokerage(pk):
-    position = Position.objects.get(pk=pk)
-    position.run_position_on_brokerage()
+        queue_check_position_on_brokerage.delay(p.pk)
 
 
 @shared_task
 def run_positions_on_brokerage():
     positions = Position.objects.filter(subportfolio__userportfolio__on=True,
                                         sold=False, placed_on_brokerage=False, settled=False)
-    for p in positions:
-        run_position_on_brokerage.delay(p.pk)
+    sell_positions = positions.filter(goal_percentage__lt=F('settled_percentage'))
+    for p in sell_positions:
+        queue_run_position_on_brokerage.apply_async((p.pk,), countdown=0)
+
+    buy_positions = positions.filter(goal_percentage__gte=F('settled_percentage'))
+    for p in buy_positions:
+        queue_run_position_on_brokerage.apply_async((p.pk,), countdown=10)
 
 
 @shared_task

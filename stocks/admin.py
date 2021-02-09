@@ -27,7 +27,7 @@ run_strategy.short_description = "Run Portfolio Strategy"
 
 
 class SubPortfolioAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'userportfolio', 'strategy', 'agg_total')
+    list_display = ('__unicode__', 'userportfolio', 'strategy', 'agg_total')
     actions = (run_strategy, )
 
     def save_model(self, request, obj, form, change):
