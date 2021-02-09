@@ -44,8 +44,8 @@ STRATEGIES = [
     },
     {
         "CODE": "1",
-        "NAME": "Keep as Cash",
-        "DESCRIPTION": "Sells everything and keeps as cash",
+        "NAME": "Put into VIG",
+        "DESCRIPTION": "Everything into a Dividend Growth ETF",
     },
     {
         "CODE": "2",

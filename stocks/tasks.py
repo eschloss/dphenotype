@@ -17,10 +17,12 @@ from django.db.models import F
 SMTP_HEADERS = {'X-MC-Important': 'true'}
 
 
-def cash_strategy(sportfolio):
+def vig_strategy(sportfolio):
     positions = Position.objects.filter(subportfolio=sportfolio)
     for p in positions:
-        set_new_position(sportfolio, p.symbol, 0.0)
+        if p.symbol.lower() != "vig":
+            set_new_position(sportfolio, p.symbol, 0.0)
+    set_new_position(sportfolio, 'VIG', 1.0)
 
 
 def vti_strategy(sportfolio):
@@ -94,7 +96,7 @@ def sector_strategy_1(sportfolio):
 
 STRATEGIES = {
     '0': sector_strategy_1,
-    '1': cash_strategy,
+    '1': vig_strategy,
     '2': vti_strategy,
 }
 
