@@ -36,7 +36,6 @@ class CashAtDayStart(models.Model):
             self.userportfolio.subportfolio_set.all().update(blocked_cash=0)
 
 
-
 STRATEGIES = [
     {
         "CODE": "0",
