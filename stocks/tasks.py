@@ -124,7 +124,7 @@ def run_positions_on_brokerage():
 
     buy_positions = positions.filter(goal_percentage__gte=F('settled_percentage'))
     for p in buy_positions:
-        queue_run_position_on_brokerage.apply_async((p.pk,), countdown=10)
+        queue_run_position_on_brokerage.apply_async((p.pk,), countdown=5)
 
 
 @shared_task
