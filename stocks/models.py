@@ -13,6 +13,9 @@ class UserPortfolio(models.Model):
     on = models.BooleanField(default=True)
     account_id = models.CharField(max_length=12)
 
+    def __unicode__(self):
+        return "%s: %s" % (str(self.pk), self.name)
+
 
 class CashAtDayStart(models.Model):
     userportfolio = models.ForeignKey(UserPortfolio, on_delete=models.PROTECT)
@@ -66,6 +69,9 @@ class SubPortfolio(models.Model):
     agg_total = models.DecimalField(decimal_places=8, max_digits=16, default=0)
     agg_total_last_set = models.DateTimeField(default=LAUNCH_DATETIME)
     blocked_cash = models.DecimalField(decimal_places=8, max_digits=16, default=0)
+
+    def __unicode__(self):
+        return "%s: %s" % (str(self.pk), self.name)
 
     def reset_agg_pc_of_total(self, recursion=True):
         agg_pc_of_total = float(self.points) / float(SubPortfolio.objects.filter(userportfolio=self.userportfolio).aggregate(Sum('points'))['points__sum'])
