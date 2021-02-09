@@ -51,8 +51,14 @@ class TransactionLogAdmin(admin.ModelAdmin):
     list_display = ('subportfolio', 'symbol', 'quantity', 'date', 'order_id')
 
 
+class TotalLogAdmin(admin.ModelAdmin):
+    list_display = ('subportfolio', 'date', 'total')
+    list_filter = ('subportfolio', 'date')
+
+
 admin.site.register(UserPortfolio)
 admin.site.register(SubPortfolio, SubPortfolioAdmin)
 admin.site.register(Position, PositionAdmin)
 admin.site.register(TransactionLog, TransactionLogAdmin)
 admin.site.register(CashAtDayStart, CashAtDayStartAdmin)
+admin.site.register(TotalLog, TotalLogAdmin)
