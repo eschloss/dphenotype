@@ -34,7 +34,7 @@ def get_stock_values_by_symbol_list(symbol_list):
 
 def get_available_cash():
     profile = rs.profiles.load_account_profile()
-    return Decimal(profile['portfolio_cash'])  # or should I be using 'portfolio_cash'
+    return Decimal(profile['portfolio_cash'])
 
 
 def fractional_order(symbol, amount, extended_hours=True):

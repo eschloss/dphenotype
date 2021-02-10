@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum
 import datetime
+import math
 from stocks.rh_utils import trading_login, get_available_cash, get_stock_values_by_symbol_list, get_order_info, \
     fractional_order, sell_all_fractional_order
 from stocks.eastern_time import EST5EDT
@@ -192,6 +193,7 @@ class Position(models.Model):
         total = self.get_total(logged_in=True)
         goal_total = sportfolio_total * self.goal_percentage
         amount_to_buy_in_dollars = goal_total - total
+        amount_to_buy_in_dollars = math.floor(amount_to_buy_in_dollars * Decimal(100.0)) / Decimal(100.0)
 
         if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars <= cash - self.subportfolio.get_blocked_cash():
             if amount_to_buy_in_dollars != 0:
