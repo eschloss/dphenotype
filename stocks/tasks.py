@@ -234,7 +234,7 @@ def set_prev_quantity():
     (open, close) = get_todays_hours()
 
     if est_now < open or est_now > close:
-        positions = Position.objects.exclude(current_quantity=0)
+        positions = Position.objects.filter(current_quantity__gt=0) | Position.objects.filter(prev_quantity__gt=0)
         for p in positions:
             p.prev_quantity = p.current_quantity
             p.save()
