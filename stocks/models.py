@@ -198,8 +198,8 @@ class Position(models.Model):
             amount_to_buy_in_dollars += sportfolio_total - total
         amount_to_buy_in_dollars = math.floor(amount_to_buy_in_dollars * Decimal(100.0)) / Decimal(100.0)
 
-        # Do not buy tiny amounts
-        if 0 < amount_to_buy_in_dollars < Decimal(1.50):
+        # Do not buy/sell tiny amounts
+        if 0 < amount_to_buy_in_dollars < Decimal(1.50) or Decimal(-1.50) < amount_to_buy_in_dollars < 0 and self.goal_percentage != 0.0:
             self.goal_percentage = self.settled_percentage
             if self.settled_percentage == 0.0:
                 self.sold = True
