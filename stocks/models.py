@@ -96,7 +96,7 @@ class SubPortfolio(models.Model):
             trading_login()
 
         now = datetime.datetime.now(tz=EST5EDT())
-        positions = Position.objects.filter(subportfolio=self, sold=False, current_quantity__gt=0)
+        positions = Position.objects.filter(subportfolio=self, prev_quantity__gt=0)
         symbol_list = list(map(lambda a: a.symbol, list(positions)))
         total = 0
 
@@ -105,7 +105,7 @@ class SubPortfolio(models.Model):
 
             for position in positions:
                 val = value_list.pop(0)
-                position.agg_total = val * position.current_quantity
+                position.agg_total = val * position.prev_quantity
                 position.agg_total_last_set = now
                 position.save()
                 total += position.agg_total
@@ -115,7 +115,7 @@ class SubPortfolio(models.Model):
         self.save()
 
     def get_total(self, logged_in=False):
-        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=30):
+        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=3):
             if not logged_in:
                 trading_login()
             self.set_total(logged_in=True)
@@ -176,7 +176,7 @@ class Position(models.Model):
         self.subportfolio.set_total(logged_in=True)
 
     def get_total(self, logged_in=False):
-        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=30):
+        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=3):
             if not logged_in:
                 trading_login()
             self.set_total(logged_in=True)
@@ -190,11 +190,22 @@ class Position(models.Model):
             trading_login()
 
         cash = self.subportfolio.get_allocated_cash_for_new_investments(logged_in=True)
-        sportfolio_total = self.subportfolio.get_total(logged_in=True) + cash
-        total = self.get_total(logged_in=True)
-        goal_total = sportfolio_total * self.goal_percentage
-        amount_to_buy_in_dollars = goal_total - total
+        amount_to_buy_in_dollars = cash * self.goal_percentage
+        if self.goal_percentage != self.settled_percentage:
+            sportfolio_total = self.subportfolio.get_total(logged_in=True)
+            sportfolio_total *= self.goal_percentage
+            total = self.get_total(logged_in=True)
+            amount_to_buy_in_dollars += sportfolio_total - total
         amount_to_buy_in_dollars = math.floor(amount_to_buy_in_dollars * Decimal(100.0)) / Decimal(100.0)
+
+        # Do not buy tiny amounts
+        if 0 < amount_to_buy_in_dollars < Decimal(1.50):
+            self.goal_percentage = self.settled_percentage
+            if self.settled_percentage == 0.0:
+                self.sold = True
+            self.settled = True
+            self.save()
+            return
 
         if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars <= cash - self.subportfolio.get_blocked_cash():
             if amount_to_buy_in_dollars != 0:
