@@ -228,12 +228,8 @@ def store_total_logs():
 
 @shared_task
 def set_prev_quantity():
-    est_now = datetime.datetime.now(tz=EST5EDT())
-
     trading_login()
-    (open, close) = get_todays_hours()
-
-    if est_now < open or est_now > close:
+    if not is_market_open():
         positions = Position.objects.filter(current_quantity__gt=0) | Position.objects.filter(prev_quantity__gt=0)
         for p in positions:
             p.prev_quantity = p.current_quantity

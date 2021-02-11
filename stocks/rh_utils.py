@@ -65,7 +65,13 @@ def get_todays_hours():
     return open_time.astimezone(tz=EST5EDT()), close_time.astimezone(tz=EST5EDT())
 
 
-def is_market_open():
+def is_market_open()
+    open, close = get_todays_hours()
+    est_now = datetime.datetime.now(tz=EST5EDT())
+    return open < est_now < close
+
+
+def is_market_open_extended():
     est_now = datetime.datetime.now(tz=EST5EDT())
     data = rs.markets.get_market_hours('XNYS', est_now.date().isoformat())
     return data['is_open']
