@@ -65,7 +65,7 @@ def get_todays_hours():
     return open_time.astimezone(tz=EST5EDT()), close_time.astimezone(tz=EST5EDT())
 
 
-def is_market_open()
+def is_market_open():
     open, close = get_todays_hours()
     est_now = datetime.datetime.now(tz=EST5EDT())
     return open < est_now < close
