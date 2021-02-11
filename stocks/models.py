@@ -115,7 +115,7 @@ class SubPortfolio(models.Model):
         self.save()
 
     def get_total(self, logged_in=False):
-        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=60):
+        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=30):
             if not logged_in:
                 trading_login()
             self.set_total(logged_in=True)
@@ -175,7 +175,7 @@ class Position(models.Model):
         self.subportfolio.set_total(logged_in=True)
 
     def get_total(self, logged_in=False):
-        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=60):
+        if self.agg_total_last_set < datetime.datetime.now(tz=EST5EDT()) - datetime.timedelta(minutes=30):
             if not logged_in:
                 trading_login()
             self.set_total(logged_in=True)
