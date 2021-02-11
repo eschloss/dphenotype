@@ -225,3 +225,17 @@ def store_total_logs():
             tl = TotalLog(subportfolio=sp, total=total, date=est_now)
             tl.save()
 
+
+@shared_task
+def set_prev_quantity():
+    est_now = datetime.datetime.now(tz=EST5EDT())
+
+    trading_login()
+    (open, close) = get_todays_hours()
+
+    if est_now < open or est_now > close:
+        positions = Position.objects.exclude(current_quantity=0)
+        for p in positions:
+            p.prev_quantity = p.current_quantity
+            p.save()
+

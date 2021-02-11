@@ -148,6 +148,7 @@ def queue_check_position_on_brokerage(pk):
 class Position(models.Model):
     subportfolio = models.ForeignKey(SubPortfolio, on_delete=models.PROTECT)
     symbol = models.CharField(max_length=15)
+    prev_quantity = models.DecimalField(decimal_places=8, max_digits=16, default=0)
     current_quantity = models.DecimalField(decimal_places=8, max_digits=16, default=0)
     settled_percentage = models.DecimalField(decimal_places=8, max_digits=9, default=0)
     goal_percentage = models.DecimalField(decimal_places=8, max_digits=9)
