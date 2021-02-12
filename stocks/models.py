@@ -227,7 +227,7 @@ class Position(models.Model):
                 self.placed_on_brokerage = True
                 self.save()
 
-                queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
+                queue_check_position_on_brokerage.apply_async((self.pk,), countdown=5)
             else:
                 self.settled = True
                 self.placed_on_brokerage = False
