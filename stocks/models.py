@@ -251,7 +251,7 @@ class Position(models.Model):
             else:
                 quantity = -Decimal(order['quantity'])
             current_quantity = self.current_quantity + quantity
-            tl = TransactionLog(subportfolio=self.subportfolio, symbol=self.symbol, quantity=current_quantity, date=est_now, order_id=self.latest_order_id)
+            tl = TransactionLog(subportfolio=self.subportfolio, symbol=self.symbol, quantity=quantity, date=est_now, order_id=self.latest_order_id)
             tl.save()
 
             if order['side'] == 'buy':
