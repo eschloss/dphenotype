@@ -267,7 +267,10 @@ class Position(models.Model):
                 self.sold = True
             self.save()
             self.subportfolio.get_blocked_cash()
-
+        elif order['state'] == 'cancelled':
+            self.settled = False
+            self.placed_on_brokerage = False
+            self.save()
         else:
             queue_check_position_on_brokerage.apply_async((self.pk,), countdown=10)
 
