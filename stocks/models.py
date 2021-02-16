@@ -272,6 +272,7 @@ class Position(models.Model):
             self.placed_on_brokerage = False
             self.amount_blocked = 0
             self.save()
+            queue_run_position_on_brokerage.apply_async((self.pk,), countdown=60)
         else:
             queue_check_position_on_brokerage.apply_async((self.pk,), countdown=10)
 
