@@ -123,11 +123,11 @@ def run_positions_on_brokerage():
                                         sold=False, placed_on_brokerage=False, settled=False)
     sell_positions = positions.filter(goal_percentage__lt=F('settled_percentage'))
     for p in sell_positions:
-        queue_run_position_on_brokerage.apply_async((p.pk,), countdown=0)
+        queue_run_position_on_brokerage.apply_async((p.pk,), countdown=5)
 
     buy_positions = positions.filter(goal_percentage__gte=F('settled_percentage'))
     for p in buy_positions:
-        queue_run_position_on_brokerage.apply_async((p.pk,), countdown=5)
+        queue_run_position_on_brokerage.apply_async((p.pk,), countdown=15)
 
 
 @shared_task

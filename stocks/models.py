@@ -227,13 +227,13 @@ class Position(models.Model):
                 self.placed_on_brokerage = True
                 self.save()
 
-                queue_check_position_on_brokerage.apply_async((self.pk,), countdown=5)
+                queue_check_position_on_brokerage.apply_async((self.pk,), countdown=10)
             else:
                 self.settled = True
                 self.placed_on_brokerage = False
                 self.save()
         else:
-            queue_run_position_on_brokerage.apply_async((self.pk,), countdown=5)
+            queue_run_position_on_brokerage.apply_async((self.pk,), countdown=10)
 
     def settle(self, logged_in=False):
         if self.sold or not self.placed_on_brokerage or self.settled or not self.latest_order_id:
@@ -269,7 +269,7 @@ class Position(models.Model):
             self.subportfolio.get_blocked_cash()
 
         else:
-            queue_check_position_on_brokerage.apply_async((self.pk,), countdown=2)
+            queue_check_position_on_brokerage.apply_async((self.pk,), countdown=10)
 
 
 def set_new_position(sportfolio, symbol, goal_percentage):
