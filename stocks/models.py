@@ -207,7 +207,7 @@ class Position(models.Model):
             self.save()
             return
 
-        if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars <= cash - self.subportfolio.get_blocked_cash():
+        if amount_to_buy_in_dollars < 0 or amount_to_buy_in_dollars <= cash - self.subportfolio.get_blocked_cash() + self.amount_blocked:
             if amount_to_buy_in_dollars != 0:
                 if amount_to_buy_in_dollars > 0:
                     self.amount_blocked = amount_to_buy_in_dollars
