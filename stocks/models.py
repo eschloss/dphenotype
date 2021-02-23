@@ -163,6 +163,7 @@ class Position(models.Model):
     agg_total = models.DecimalField(decimal_places=8, max_digits=16, default=0)
     agg_total_last_set = models.DateTimeField(default=LAUNCH_DATETIME)
     amount_blocked = models.DecimalField(decimal_places=8, max_digits=16, default=0)
+    new_cash = models.DecimalField(decimal_places=8, max_digits=9, default=0)
 
     def __subportfolio__(self):
         return self.subportfolio.__unicode__()
@@ -191,6 +192,7 @@ class Position(models.Model):
 
         cash = self.subportfolio.get_allocated_cash_for_new_investments(logged_in=True)
         amount_to_buy_in_dollars = cash * self.goal_percentage
+        new_cash = math.floor(amount_to_buy_in_dollars * Decimal(100.0)) / Decimal(100.0)
         if self.goal_percentage != self.settled_percentage:
             sportfolio_total = self.subportfolio.get_total(logged_in=True)
             sportfolio_total *= self.goal_percentage
@@ -224,6 +226,7 @@ class Position(models.Model):
                 self.position_id = order['position']
                 self.instrument_id = order['instrument']
                 self.latest_order_id = order['id']
+                self.new_cash = new_cash
                 self.placed_on_brokerage = True
                 self.save()
 
@@ -251,7 +254,7 @@ class Position(models.Model):
             else:
                 quantity = -Decimal(order['quantity'])
             current_quantity = self.current_quantity + quantity
-            tl = TransactionLog(subportfolio=self.subportfolio, symbol=self.symbol, quantity=quantity, date=est_now, order_id=self.latest_order_id)
+            tl = TransactionLog(subportfolio=self.subportfolio, symbol=self.symbol, quantity=quantity, date=est_now, order_id=self.latest_order_id, new_cash=self.new_cash)
             tl.save()
 
             if order['side'] == 'buy':
@@ -297,6 +300,7 @@ class TransactionLog(models.Model):
     quantity = models.DecimalField(decimal_places=8, max_digits=16) #positive for buy, negative for sell
     date = models.DateTimeField()
     order_id = models.CharField(max_length=50)
+    new_cash = models.DecimalField(decimal_places=8, max_digits=16, default=0)
 
     def __subportfolio__(self):
         return self.subportfolio.__unicode__()

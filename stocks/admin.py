@@ -58,7 +58,7 @@ class CashAtDayStartAdmin(admin.ModelAdmin):
 
 
 class TransactionLogAdmin(admin.ModelAdmin):
-    list_display = ('__subportfolio__', 'symbol', 'quantity', 'date', 'order_id')
+    list_display = ('__subportfolio__', 'symbol', 'quantity', 'new_cash', 'date', 'order_id')
 
 
 class TotalLogAdmin(admin.ModelAdmin):
