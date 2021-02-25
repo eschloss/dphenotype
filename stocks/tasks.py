@@ -44,6 +44,8 @@ def sector_strategy_1(sportfolio):
 
     end = datetime.datetime.now(tz=EST5EDT())
     start = end - datetime.timedelta(days=-comparison_index2 * 7 / 4)
+    end = end.date()
+    start = start.date()
 
     sector_etfs = ["VGT", "VHT", "VNQ", "VAW", "VCR", "VFH", "VDE", "VIS", "VPU", "VDC", "VOX"]
     sectors = {}
