@@ -59,6 +59,11 @@ STRATEGIES = [
         "NAME": "Sector Strategy 2",
         "DESCRIPTION": "Takes the worst performing sectors that used to be performing well and buys them. More diverse than SectorStrat1.",
     },
+    {
+        "CODE": "4",
+        "NAME": "Leveraged ETF Strategy",
+        "DESCRIPTION": "UPRO, TQQQ, QQQ, SPY",
+    },
 ]
 STRATEGY_CHOICES = list(map(lambda a: (a['CODE'], a['NAME']), STRATEGIES))
 
@@ -76,6 +81,10 @@ class SubPortfolio(models.Model):
     agg_total = models.DecimalField(decimal_places=8, max_digits=16, default=0)
     agg_total_last_set = models.DateTimeField(default=LAUNCH_DATETIME)
     blocked_cash = models.DecimalField(decimal_places=8, max_digits=16, default=0)
+    rebalance_days = models.IntegerField(default=0)  # 0 means never rebalance. 30 means rebalance every 30 days
+    agg_last_rebalance = models.DateTimeField(default=LAUNCH_DATETIME)
+    var1 = models.DecimalField(decimal_places=8, max_digits=16, default=0, blank=True, null=True)
+    var2 = models.DecimalField(decimal_places=8, max_digits=16, default=0, blank=True, null=True)
 
     def __unicode__(self):
         return "%s: %s" % (str(self.pk), self.name)

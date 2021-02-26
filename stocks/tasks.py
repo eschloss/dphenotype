@@ -17,6 +17,29 @@ from django.db.models import F
 SMTP_HEADERS = {'X-MC-Important': 'true'}
 
 
+def leveraged_etf_strategy(sportfolio):
+    spy_upro_pc = sportfolio.var1
+    spy_pc = spy_upro_pc * sportfolio.var2
+    upro_pc = spy_upro_pc * (1 - sportfolio.var2)
+
+    qqq_tqqq_pc = 1 - spy_upro_pc
+    qqq_pc = qqq_tqqq_pc * sportfolio.var2
+    tqqq_pc = qqq_tqqq_pc * (1 - sportfolio.var2)
+
+    # trigger rebalancing periodically
+    est_now = datetime.datetime.now(tz=EST5EDT())
+    if sportfolio.agg_last_rebalace < est_now - datetime.timedelta(days=sportfolio.rebalance_days):
+        spy_pc += Decimal(.00000001)
+        upro_pc += Decimal(.00000001)
+        qqq_pc += Decimal(.00000001)
+        tqqq_pc += Decimal(.00000001)
+
+    set_new_position(sportfolio, 'SPY', spy_pc)
+    set_new_position(sportfolio, 'QQQ', qqq_pc)
+    set_new_position(sportfolio, 'UPRO', upro_pc)
+    set_new_position(sportfolio, 'TQQQ', tqqq_pc)
+
+
 def vig_strategy(sportfolio):
     positions = Position.objects.filter(subportfolio=sportfolio)
     for p in positions:
@@ -148,6 +171,7 @@ STRATEGIES = {
     '1': vig_strategy,
     '2': vti_strategy,
     '3': sector_strategy_2,
+    '4': leveraged_etf_strategy,
 }
 
 
