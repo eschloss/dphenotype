@@ -54,6 +54,11 @@ STRATEGIES = [
         "NAME": "Put into VTI",
         "DESCRIPTION": "Puts everything into VTI",
     },
+    {
+        "CODE": "3",
+        "NAME": "Sector Strategy 2",
+        "DESCRIPTION": "Takes the worst performing sectors that used to be performing well and buys them. More diverse than SectorStrat1.",
+    },
 ]
 STRATEGY_CHOICES = list(map(lambda a: (a['CODE'], a['NAME']), STRATEGIES))
 

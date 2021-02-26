@@ -33,6 +33,53 @@ def vti_strategy(sportfolio):
     set_new_position(sportfolio, 'VTI', 1.0)
 
 
+def sector_strategy_2(sportfolio):  #simpler strategy
+    prev_index = -1
+    comparison_index = -5
+    comparison_index2 = -150
+
+    end = datetime.datetime.now(tz=EST5EDT())
+    start = end - datetime.timedelta(days=-comparison_index2 * 7 / 4)
+    end = end.date()
+    start = start.date()
+
+    sector_etfs = ["VGT", "VHT", "VNQ", "VAW", "VCR", "VFH", "VDE", "VIS", "VPU", "VDC", "VOX"]
+    sectors = {}
+    for etf in sector_etfs:
+        sectors[etf] = web.DataReader(etf, "yahoo", start, end)["Adj Close"]
+    eql_close = web.DataReader("EQL", "yahoo", start, end)["Adj Close"].rename("EQL")
+
+    trading_login()
+
+    underperforming_sectors = []
+    yesterdays_pc_change = {}
+    total = 0
+    for etf in sector_etfs:
+        sector = sectors[etf]
+        performance = sector[prev_index] / sector[comparison_index] - eql_close[prev_index] / eql_close[comparison_index]
+        performance2 = sector[prev_index] / sector[comparison_index2] - eql_close[prev_index] / eql_close[comparison_index2]
+        if performance < 0 < performance2:
+            underperforming_sectors.append(etf)
+            mod_performance = -performance / (performance2 ** 2)
+            yesterdays_pc_change[etf] = mod_performance
+            total += mod_performance
+
+    sector_invest_pc = {}
+    for etf in underperforming_sectors:
+        sector_invest_pc[etf] = yesterdays_pc_change[etf] / total
+
+    """ SELL OVERPERFORMING SECTORS """
+    for etf in filter(lambda a: a not in underperforming_sectors, sector_etfs):
+        set_new_position(sportfolio, etf, 0.0)
+
+    """ BUY/CHANGE QUANTITY OF UNDERPERFORMING SECTORS (OR SPY) """
+    if len(underperforming_sectors) > 0:
+        for etf in underperforming_sectors:
+            set_new_position(sportfolio, etf, sector_invest_pc[etf])
+    else:
+        set_new_position(sportfolio, "EQL", 1.0)
+
+
 def sector_strategy_1(sportfolio):
     prev_index = -1
     comparison_index = -5
@@ -100,6 +147,7 @@ STRATEGIES = {
     '0': sector_strategy_1,
     '1': vig_strategy,
     '2': vti_strategy,
+    '3': sector_strategy_2,
 }
 
 
