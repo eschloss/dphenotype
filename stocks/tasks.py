@@ -36,6 +36,11 @@ def leveraged_etf_strategy(sportfolio):
         sportfolio.agg_last_rebalance = est_now
         sportfolio.save()
 
+    print(spy_pc)
+    print(qqq_pc)
+    print(upro_pc)
+    print(tqqq_pc)
+
     set_new_position(sportfolio, 'SPY', spy_pc)
     set_new_position(sportfolio, 'QQQ', qqq_pc)
     set_new_position(sportfolio, 'UPRO', upro_pc)
