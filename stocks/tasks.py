@@ -33,6 +33,8 @@ def leveraged_etf_strategy(sportfolio):
         upro_pc += Decimal(.00000001)
         qqq_pc += Decimal(.00000001)
         tqqq_pc += Decimal(.00000001)
+        sportfolio.agg_last_rebalance = est_now
+        sportfolio.save()
 
     set_new_position(sportfolio, 'SPY', spy_pc)
     set_new_position(sportfolio, 'QQQ', qqq_pc)
