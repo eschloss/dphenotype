@@ -28,7 +28,7 @@ def leveraged_etf_strategy(sportfolio):
 
     # trigger rebalancing periodically
     est_now = datetime.datetime.now(tz=EST5EDT())
-    if sportfolio.agg_last_rebalace < est_now - datetime.timedelta(days=sportfolio.rebalance_days):
+    if sportfolio.agg_last_rebalance < est_now - datetime.timedelta(days=sportfolio.rebalance_days):
         spy_pc += Decimal(.00000001)
         upro_pc += Decimal(.00000001)
         qqq_pc += Decimal(.00000001)
