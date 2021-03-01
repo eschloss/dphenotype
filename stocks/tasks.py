@@ -20,11 +20,11 @@ SMTP_HEADERS = {'X-MC-Important': 'true'}
 def leveraged_etf_strategy(sportfolio):
     spy_upro_pc = sportfolio.var1
     spy_pc = spy_upro_pc * sportfolio.var2
-    upro_pc = spy_upro_pc * (1 - sportfolio.var2)
+    upro_pc = spy_upro_pc * (Decimal(1) - sportfolio.var2)
 
-    qqq_tqqq_pc = 1 - spy_upro_pc
+    qqq_tqqq_pc = Decimal(1) - spy_upro_pc
     qqq_pc = qqq_tqqq_pc * sportfolio.var2
-    tqqq_pc = qqq_tqqq_pc * (1 - sportfolio.var2)
+    tqqq_pc = qqq_tqqq_pc * (Decimal(1) - sportfolio.var2)
 
     # trigger rebalancing periodically
     est_now = datetime.datetime.now(tz=EST5EDT())
