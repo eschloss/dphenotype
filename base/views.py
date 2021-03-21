@@ -23,22 +23,27 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
         question_dict = {"instance_id": qi.pk, "text": template.text, "order": template.order, "type": type}
         if template.question_group:
             group = template.question_group
-            group_dict = {"text": group.text, "order": group.order}
-            group_dict["questions"] = {}
+            group_dict = {"text": group.text, "order": group.order, "questions": {}}
             if group.question_section:
                 section = group.question_section
                 if section.pk not in sections:
-                    sections[section.pk] = {"text": section.text, "order": section.order,}
+                    sections[section.pk] = {"text": section.text, "order": section.order, {}}
+
+                if not sections[section.pk]["groups"]:
                     sections[section.pk]["groups"] = {}
-                #if len(sections[section.pk]["groups"]) == 0:  # some strange bug so i added this if statement
-                #    sections[section.pk]["groups"][group.pk] = {}
                 if group.pk not in sections[section.pk]["groups"]:
                     sections[section.pk]["groups"][group.pk] = group_dict
+
+                if not sections[section.pk]["groups"][group.pk]["questions"]:
+                    sections[section.pk]["groups"][group.pk]["questions"] = {}
                 if template.pk not in sections[section.pk]["groups"][group.pk]["questions"]:
                     sections[section.pk]["groups"][group.pk]["questions"][template.pk] = question_dict
             else:
                 if group.pk not in unattached_groups:
                     unattached_groups[group.pk] = group_dict
+
+                if not unattached_groups[group.pk]["questions"]:
+                    unattached_groups[group.pk]["questions"] = {}
                 if template.pk not in unattached_groups[group.pk]["questions"]:
                     unattached_groups[group.pk]["questions"][template.pk] = question_dict
         else:
