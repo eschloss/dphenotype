@@ -29,21 +29,15 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
                 if section.pk not in sections:
                     sections[section.pk] = {"text": section.text, "order": section.order, "groups": {}}
 
-                if not sections[section.pk]["groups"]:
-                    sections[section.pk]["groups"] = {}
                 if group.pk not in sections[section.pk]["groups"]:
                     sections[section.pk]["groups"][group.pk] = group_dict
 
-                if not sections[section.pk]["groups"][group.pk]["questions"]:
-                    sections[section.pk]["groups"][group.pk]["questions"] = {}
                 if template.pk not in sections[section.pk]["groups"][group.pk]["questions"]:
                     sections[section.pk]["groups"][group.pk]["questions"][template.pk] = question_dict
             else:
                 if group.pk not in unattached_groups:
                     unattached_groups[group.pk] = group_dict
 
-                if not unattached_groups[group.pk]["questions"]:
-                    unattached_groups[group.pk]["questions"] = {}
                 if template.pk not in unattached_groups[group.pk]["questions"]:
                     unattached_groups[group.pk]["questions"][template.pk] = question_dict
         else:
@@ -78,7 +72,7 @@ def gather_question_instances(request):
         mc_qis = MultipleChoiceQuestionInstance.objects.filter(profile=profile, answered__isnull=True)
         n_qis = NumberQuestionInstance.objects.filter(profile=profile, answered__isnull=True)
         ft_qis = FreeTextQuestionInstance.objects.filter(profile=profile, answered__isnull=True)
-        sections, unattached_groups, unattached_questions = add_questions_to_dictionaries(mc_qis, "multiple_choice")
+        sections, unattached_groups, unattached_questions = add_questions_to_dictionaries(mc_qis, "multiple_choice", {}, {}, {})
         sections, unattached_groups, unattached_questions = add_questions_to_dictionaries(n_qis, "numbers", sections, unattached_groups, unattached_questions)
         sections, unattached_groups, unattached_questions = add_questions_to_dictionaries(ft_qis, "free_text", sections, unattached_groups, unattached_questions)
         response = order_questions_dicts(sections, unattached_groups, unattached_questions)
