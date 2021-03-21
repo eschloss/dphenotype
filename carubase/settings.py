@@ -38,6 +38,8 @@ DEBUG = not IS_PRODUCTION
 
 ALLOWED_HOSTS = ['carubackend.herokuapp.com']
 
+STATIC_ROOT = 'static'
+
 
 # Application definition
 
