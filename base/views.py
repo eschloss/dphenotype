@@ -27,7 +27,7 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
             if group.question_section:
                 section = group.question_section
                 if section.pk not in sections:
-                    sections[section.pk] = {"text": section.text, "order": section.order, {}}
+                    sections[section.pk] = {"text": section.text, "order": section.order, "groups": {}}
 
                 if not sections[section.pk]["groups"]:
                     sections[section.pk]["groups"] = {}
