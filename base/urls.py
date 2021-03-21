@@ -18,5 +18,9 @@ from django.urls import path
 from base import views
 
 urlpatterns = [
-    path('', views.home)
+    path('', views.home),
+    path('gather_question_instances/', views.gather_question_instances),
+    path('set_question_instance/', views.set_question_instance),
+    path('set_emoji/', views.set_emoji),
+    path('get_past_emojis/', views.get_past_emojis),
 ]
