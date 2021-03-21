@@ -36,7 +36,7 @@ except:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not IS_PRODUCTION
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['carubackend.herokuapp.com']
 
 
 # Application definition
