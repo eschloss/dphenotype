@@ -28,6 +28,8 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
                 section = group.question_section
                 if section.pk not in sections:
                     sections[section.pk] = {"text": section.text, "order": section.order, "groups": {}}
+                if len(sections[section.pk]["groups"]) == 0:  # some strange bug so i added this if statement
+                    sections[section.pk]["groups"][group.pk] = {}
                 if group.pk not in sections[section.pk]["groups"]:
                     sections[section.pk]["groups"][group.pk] = group_dict
                 if template.pk not in sections[section.pk]["groups"][group.pk]["questions"]:
