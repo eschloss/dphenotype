@@ -10,6 +10,13 @@ def home(request):
     return HttpResponse(response)
 
 
+def login(request):
+    if request.GET.__contains__("user_id"):
+        profile, is_new = Profile.objects.get_or_create(user_id=request.GET["user_id"])
+        return HttpResponse(json.dumps({"success": True, "is_new": is_new }), content_type='application/json')
+    return HttpResponse(json.dumps({"success": False}), content_type='application/json')
+
+
 def add_questions_to_dictionaries(questions_instances, type, sections={}, unattached_groups={}, unattached_questions={}):
     for qi in questions_instances:
         template = qi.question_template
