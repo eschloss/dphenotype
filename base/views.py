@@ -113,7 +113,7 @@ def get_past_emojis(request):
         for emoji in emojis:
             if emoji.created.date() not in dates:
                 dates[emoji.created.date()] = emoji.emoji
-        date_emojis = sorted(dates.items(), key=lambda a: a[0])
+        date_emojis = sorted(dates.items(), reverse=True, key=lambda a: a[0])
 
         full_date_emoji_list = []
         today = now.date()
@@ -128,8 +128,6 @@ def get_past_emojis(request):
         while counter < 30:
             full_date_emoji_list.append((counter, "none"))
             counter += 1
-
-        print(full_date_emoji_list)
 
         return HttpResponse(json.dumps(full_date_emoji_list), content_type='application/json')
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
