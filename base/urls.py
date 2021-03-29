@@ -23,5 +23,6 @@ urlpatterns = [
     path('set_question_instance/', views.set_question_instance),
     path('set_emoji/', views.set_emoji),
     path('get_past_emojis/', views.get_past_emojis),
+    path('get_average_emojis/', views.get_average_emojis),
     path('login/', views.login),
 ]

@@ -133,6 +133,40 @@ def get_past_emojis(request):
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
 
 
+def get_average_emojis(request):
+    if request.GET.__contains__("user_id"):
+        profile = Profile.objects.get(user_id=request.GET["user_id"])
+        now = datetime.datetime.now()
+        emojis = Emoji.objects.filter(profile=profile, created__gt=now - datetime.timedelta(days=30)).order_by('-created')
+        monthly_emoji_dict = {}
+        for emoji in emojis:
+            if emoji.emoji in monthly_emoji_dict:
+                monthly_emoji_dict[emoji.emoji] += 1
+            else:
+                monthly_emoji_dict[emoji.emoji] = 1
+        monthlyMaxItem = '0'
+        max = 0
+        for key, item in monthly_emoji_dict.items():
+            if item > max:
+                monthlyMaxItem = key
+
+        emojis = Emoji.objects.filter(profile=profile, created__gt=now - datetime.timedelta(days=7)).order_by('-created')
+        weekly_emoji_dict = {}
+        for emoji in emojis:
+            if emoji.emoji in weekly_emoji_dict:
+                weekly_emoji_dict[emoji.emoji] += 1
+            else:
+                weekly_emoji_dict[emoji.emoji] = 1
+        weeklyMaxItem = '0'
+        max = 0
+        for key, item in weekly_emoji_dict.items():
+            if item > max:
+                weeklyMaxItem = key
+
+        return HttpResponse(json.dumps({"weekly": weeklyMaxItem, "monthly": monthlyMaxItem}), content_type='application/json')
+    return HttpResponse(json.dumps({"success": False}), content_type='application/json')
+
+
 def set_emoji(request):
     if request.GET.__contains__("user_id"):
         profile = Profile.objects.get(user_id=request.GET["user_id"])
