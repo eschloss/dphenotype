@@ -126,7 +126,6 @@ TYPE_TO_MODEL = {
 }
 
 
-from django.views.decorators.csrf import csrf_exempt
 # this is called when a user answers a question
 def set_question_instance(request):
     print(request.POST)
