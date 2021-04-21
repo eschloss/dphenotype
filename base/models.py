@@ -123,6 +123,8 @@ class MultipleChoiceQuestionTemplate(QuestionTemplate):
     multiple_choice8 = models.CharField(max_length=50, blank=True, null=True)
     multiple_choice9 = models.CharField(max_length=50, blank=True, null=True)
     multiple_choice10 = models.CharField(max_length=50, blank=True, null=True)
+    multiple_choice11 = models.CharField(max_length=50, blank=True, null=True)
+    multiple_choice12 = models.CharField(max_length=50, blank=True, null=True)
     include_other_field = models.BooleanField(default=False)
     other_field_label = models.CharField(max_length=50, blank=True, null=True)
 

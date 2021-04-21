@@ -43,6 +43,10 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
                 mc_list.append({"id": "9", "text": template.multiple_choice9, "pid": qi.pk})
             if template.multiple_choice10:
                 mc_list.append({"id": "10", "text": template.multiple_choice10, "pid": qi.pk})
+            if template.multiple_choice11:
+                mc_list.append({"id": "11", "text": template.multiple_choice11, "pid": qi.pk})
+            if template.multiple_choice12:
+                mc_list.append({"id": "12", "text": template.multiple_choice12, "pid": qi.pk})
             question_dict["options"] = mc_list
 
             if template.include_other_field:
@@ -126,10 +130,10 @@ from django.views.decorators.csrf import csrf_exempt
 # this is called when a user answers a question
 @csrf_exempt  #TODO get rid of this
 def set_question_instance(request):
+    print(request.POST)
     if request.POST.__contains__("user_id"):
         profile = Profile.objects.get(user_id=request.POST["user_id"])
 
-        print(request.POST)
         for key, val in request.POST.items():
             if re.search(r'^q_', key):
                 qid = re.search(r'_([^_]*$)', key).group()
