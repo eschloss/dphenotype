@@ -80,7 +80,7 @@ class QuestionSection(models.Model):
     is_baseline = models.BooleanField(default=True, help_text="Is this section part of a baseline questionnaire?")
     is_dependent_on_question = models.BooleanField(default=False, help_text="Is this section dependent on the answer to a specific question?")
     dependent_question = models.ForeignKey("MultipleChoiceQuestionTemplate", blank=True, null=True, help_text="Choose the dependent question", on_delete=models.PROTECT)
-    dependent_question_answers = models.CharField(max_length=20, blank=True, null=True, help_text="Choose the answer(s) necessary for the dependent quesiton in order to show this question. Separate multiple acceptable answers with a comma.")
+    dependent_question_answers = models.CharField(max_length=100, blank=True, null=True, help_text="Choose the answer(s) necessary for the dependent quesiton in order to show this question. Separate multiple acceptable answers with a comma.")
 
     def __str__(self):
         return self.text
@@ -148,6 +148,33 @@ class QuestionInstance(models.Model):
 
     class Meta:
         abstract = True
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        dependentSections = QuestionSection.objects.filter(is_baseline=True, is_dependent_on_question=True, dependent_question=self.pk)
+        for ds in dependentSections:
+            answers = map(lambda a: a.strip(), ds.dependent_question_answers.split(","))
+            if str(self.value) in answers:
+                question_groups = ds.questiongroup_set.all()
+                for group in question_groups:
+                    # create multiple choice question instances
+                    question_templates = group.multiplechoicequestiontemplate_set.all()
+                    for question_template in question_templates:
+                        qi = MultipleChoiceQuestionInstance(profile=self.profile, question_template=question_template)
+                        qi.save()
+
+                    # create number question instances
+                    question_templates = group.numberquestiontemplate_set.all()
+                    for question_template in question_templates:
+                        qi = NumberQuestionInstance(profile=self.profile, question_template=question_template)
+                        qi.save()
+
+                    # create free text question instances
+                    question_templates = group.freetextquestiontemplate_set.all()
+                    for question_template in question_templates:
+                        qi = FreeTextQuestionInstance(profile=self.profile, question_template=question_template)
+                        qi.save()
 
 
 class MultipleChoiceQuestionInstance(QuestionInstance):
