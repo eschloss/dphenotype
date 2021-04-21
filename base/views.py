@@ -136,7 +136,7 @@ def set_question_instance(request):
 
         for key, val in data['answers'].items():
             try:
-                if re.search(r'^mc_|^ft_|^n_', key):
+                if re.search(r'^mc_|^ft_|^n_', key) and val:
                     qid = re.search(r'_([^_]*$)', key).group(1)
                     answer = val
                     if re.search(r'^mc_', key):
@@ -150,9 +150,8 @@ def set_question_instance(request):
                     instance.value = answer
                     instance.answered = datetime.datetime.utcnow()
                     instance.save()
-                    print("%s ---- %s" % (key, answer))
             except:
-                pass
+                print("ERROR: BAD POST DATA SENT TO SERVER")
 
         return HttpResponse(json.dumps({"success": True}), content_type='application/json')
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
