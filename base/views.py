@@ -134,15 +134,18 @@ def set_question_instance(request):
         print("user Id detected")
         profile = Profile.objects.get(user_id=data["user_id"])
 
-        for key, val in data.items():
-            if re.search(r'^q_', key):
+        for key, val in data['answers'].items():
+            if re.search(r'^_', key):
                 qid = re.search(r'_([^_]*$)', key).group()
-                if re.search(r'q_mc_', key):
+                answer = val
+                if re.search(r'mc_', key):
+                    if val == 'o' and data['answers']['mco_%s' % str(key)]:
+                        val = data['answers']['mco_%s' % str(key)]
+                elif re.search(r'ft_', key):
                     pass
-                elif re.search(r'q_ft_', key):
+                elif re.search(r'n_', key):
                     pass
-                elif re.search(r'q_n_', key):
-                    pass
+                print("%s ---- %s" % (key, answer))
 
         if request.POST.__contains__("instance_id") and request.POST.__contains__("value") and request.POST.__contains__("type"):
             type = request.POST["type"]
