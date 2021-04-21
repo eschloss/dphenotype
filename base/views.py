@@ -24,25 +24,25 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
         if type == "multiple_choice":
             mc_list = []
             if template.multiple_choice1:
-                mc_list.append({"id": "1", "text": template.multiple_choice1})
+                mc_list.append({"id": "1", "text": template.multiple_choice1, "pid": qi.pk})
             if template.multiple_choice2:
-                mc_list.append({"id": "2", "text": template.multiple_choice2})
+                mc_list.append({"id": "2", "text": template.multiple_choice2, "pid": qi.pk})
             if template.multiple_choice3:
-                mc_list.append({"id": "3", "text": template.multiple_choice3})
+                mc_list.append({"id": "3", "text": template.multiple_choice3, "pid": qi.pk})
             if template.multiple_choice4:
-                mc_list.append({"id": "4", "text": template.multiple_choice4})
+                mc_list.append({"id": "4", "text": template.multiple_choice4, "pid": qi.pk})
             if template.multiple_choice5:
-                mc_list.append({"id": "5", "text": template.multiple_choice5})
+                mc_list.append({"id": "5", "text": template.multiple_choice5, "pid": qi.pk})
             if template.multiple_choice6:
-                mc_list.append({"id": "6", "text": template.multiple_choice6})
+                mc_list.append({"id": "6", "text": template.multiple_choice6, "pid": qi.pk})
             if template.multiple_choice7:
-                mc_list.append({"id": "7", "text": template.multiple_choice7})
+                mc_list.append({"id": "7", "text": template.multiple_choice7, "pid": qi.pk})
             if template.multiple_choice8:
-                mc_list.append({"id": "8", "text": template.multiple_choice8})
+                mc_list.append({"id": "8", "text": template.multiple_choice8, "pid": qi.pk})
             if template.multiple_choice9:
-                mc_list.append({"id": "9", "text": template.multiple_choice9})
+                mc_list.append({"id": "9", "text": template.multiple_choice9, "pid": qi.pk})
             if template.multiple_choice10:
-                mc_list.append({"id": "10", "text": template.multiple_choice10})
+                mc_list.append({"id": "10", "text": template.multiple_choice10, "pid": qi.pk})
             question_dict["options"] = mc_list
 
             if template.include_other_field:
