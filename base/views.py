@@ -43,10 +43,10 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
                 mc_list.append({"id": "9", "text": template.multiple_choice9})
             if template.multiple_choice10:
                 mc_list.append({"id": "10", "text": template.multiple_choice10})
-            question_list["options"] = mc_list
+            question_dict["options"] = mc_list
 
             if template.include_other_field:
-                question_list["other"] = template.other_field_label if template.other_field_label else "other"
+                question_dict["other"] = template.other_field_label if template.other_field_label else "other"
         if type == "numbers":
             question_dict["as_range"] = template.view_as_range
             question_dict["range_min"] = template.range_min
