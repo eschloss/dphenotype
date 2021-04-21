@@ -139,8 +139,8 @@ def set_question_instance(request):
                 qid = re.search(r'_([^_]*$)', key).group()
                 answer = val
                 if re.search(r'^mc_', key):
-                    if val == 'o' and data['answers']['mco_%s' % str(key)]:
-                        answer = data['answers']['mco_%s' % str(key)]
+                    if val == 'o' and data['answers']['mco_%s' % qid]:
+                        answer = data['answers']['mco_%s' % qid]
                 elif re.search(r'^ft_', key):
                     pass
                 elif re.search(r'^n_', key):
