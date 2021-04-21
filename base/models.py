@@ -149,6 +149,15 @@ class QuestionInstance(models.Model):
     class Meta:
         abstract = True
 
+
+class MultipleChoiceQuestionInstance(QuestionInstance):
+    question_template = models.ForeignKey(MultipleChoiceQuestionTemplate, on_delete=models.PROTECT)
+    value = models.IntegerField(blank=True, null=True)
+    other_value = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return "%s - %s - %s" % (str(self.profile), str(self.created), str(self.question_template))
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
@@ -175,15 +184,6 @@ class QuestionInstance(models.Model):
                     for question_template in question_templates:
                         qi = FreeTextQuestionInstance(profile=self.profile, question_template=question_template)
                         qi.save()
-
-
-class MultipleChoiceQuestionInstance(QuestionInstance):
-    question_template = models.ForeignKey(MultipleChoiceQuestionTemplate, on_delete=models.PROTECT)
-    value = models.IntegerField(blank=True, null=True)
-    other_value = models.CharField(max_length=100, blank=True, null=True)
-
-    def __str__(self):
-        return "%s - %s - %s" % (str(self.profile), str(self.created), str(self.question_template))
 
 
 class NumberQuestionInstance(QuestionInstance):
