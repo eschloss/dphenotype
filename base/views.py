@@ -128,12 +128,13 @@ TYPE_TO_MODEL = {
 
 # this is called when a user answers a question
 def set_question_instance(request):
-    print(request.POST)
-    if request.POST.__contains__("user_id"):
+    data = json.loads(request.body.decode('utf-8'))
+    print(data)
+    if data.__contains__("user_id"):
         print("user Id detected")
-        profile = Profile.objects.get(user_id=request.POST["user_id"])
+        profile = Profile.objects.get(user_id=data["user_id"])
 
-        for key, val in request.POST.items():
+        for key, val in data.items():
             if re.search(r'^q_', key):
                 qid = re.search(r'_([^_]*$)', key).group()
                 if re.search(r'q_mc_', key):
