@@ -126,6 +126,8 @@ TYPE_TO_MODEL = {
 def set_question_instance(request):
     if request.GET.__contains__("user_id"):
         profile = Profile.objects.get(user_id=request.GET["user_id"])
+
+        print(request.GET)
         if request.GET.__contains__("instance_id") and request.GET.__contains__("value") and request.GET.__contains__("type"):
             type = request.GET["type"]
             if type in TYPE_TO_MODEL:
