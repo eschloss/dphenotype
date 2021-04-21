@@ -130,8 +130,9 @@ from django.views.decorators.csrf import csrf_exempt
 # this is called when a user answers a question
 @csrf_exempt  #TODO get rid of this
 def set_question_instance(request):
-    print(request)
+    print(request.POST)
     if request.POST.__contains__("user_id"):
+        print("user Id detected")
         profile = Profile.objects.get(user_id=request.POST["user_id"])
 
         for key, val in request.POST.items():
