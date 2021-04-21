@@ -131,27 +131,26 @@ def set_question_instance(request):
     data = json.loads(request.body.decode('utf-8'))
     print(data)
     if data.__contains__("user_id"):
-        print("user Id detected")
         profile = Profile.objects.get(user_id=data["user_id"])
 
         for key, val in data['answers'].items():
-            try:
-                if re.search(r'^mc_|^ft_|^n_', key) and val:
-                    qid = re.search(r'_([^_]*$)', key).group(1)
-                    answer = val
-                    if re.search(r'^mc_', key):
-                        instance = MultipleChoiceQuestionInstance.objects.get(pk=qid, profile=profile)
-                        if val == 'o' and 'mco_%s' % qid in data['answers']:
-                            instance.other_value = data['answers']['mco_%s' % qid]
-                    elif re.search(r'^ft_', key):
-                        instance = FreeTextQuestionInstance.objects.get(pk=qid, profile=profile)
-                    elif re.search(r'^n_', key):
-                        instance = NumberQuestionInstance.objects.get(pk=qid, profile=profile)
-                    instance.value = answer
-                    instance.answered = datetime.datetime.utcnow()
-                    instance.save()
-            except:
-                print("ERROR: BAD POST DATA SENT TO SERVER")
+            #try:
+            if re.search(r'^mc_|^ft_|^n_', key) and val:
+                qid = re.search(r'_([^_]*$)', key).group(1)
+                answer = val
+                if re.search(r'^mc_', key):
+                    instance = MultipleChoiceQuestionInstance.objects.get(pk=qid, profile=profile)
+                    if val == 'o' and 'mco_%s' % qid in data['answers']:
+                        instance.other_value = data['answers']['mco_%s' % qid]
+                elif re.search(r'^ft_', key):
+                    instance = FreeTextQuestionInstance.objects.get(pk=qid, profile=profile)
+                elif re.search(r'^n_', key):
+                    instance = NumberQuestionInstance.objects.get(pk=qid, profile=profile)
+                instance.value = answer
+                instance.answered = datetime.datetime.utcnow()
+                instance.save()
+            #except:
+            #   print("ERROR: BAD POST DATA SENT TO SERVER")
 
         return HttpResponse(json.dumps({"success": True}), content_type='application/json')
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
