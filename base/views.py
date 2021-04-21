@@ -124,13 +124,13 @@ TYPE_TO_MODEL = {
 
 from django.views.decorators.csrf import csrf_exempt
 # this is called when a user answers a question
-@csrf_exempt
+@csrf_exempt  #TODO get rid of this
 def set_question_instance(request):
-    if request.GET.__contains__("user_id"):
-        profile = Profile.objects.get(user_id=request.GET["user_id"])
+    if request.POST.__contains__("user_id"):
+        profile = Profile.objects.get(user_id=request.POST["user_id"])
 
-        print(request.GET)
-        for key, val in request.GET.items():
+        print(request.POST)
+        for key, val in request.POST.items():
             if re.search(r'^q_', key):
                 qid = re.search(r'_([^_]*$)', key).group()
                 if re.search(r'q_mc_', key):
@@ -140,13 +140,13 @@ def set_question_instance(request):
                 elif re.search(r'q_n_', key):
                     pass
 
-        if request.GET.__contains__("instance_id") and request.GET.__contains__("value") and request.GET.__contains__("type"):
-            type = request.GET["type"]
+        if request.POST.__contains__("instance_id") and request.POST.__contains__("value") and request.POST.__contains__("type"):
+            type = request.POST["type"]
             if type in TYPE_TO_MODEL:
-                instance = TYPE_TO_MODEL[type].objects.get(pk=int(request.GET["instance_id"]))
-                instance.value = request.GET["value"]
-                if request.GET.__contains__("other_value"):
-                    instance.other_value = request.GET["other_value"]
+                instance = TYPE_TO_MODEL[type].objects.get(pk=int(request.POST["instance_id"]))
+                instance.value = request.POST["value"]
+                if request.POST.__contains__("other_value"):
+                    instance.other_value = request.POST["other_value"]
                 instance.answered = datetime.datetime.now()
                 instance.save()
                 return HttpResponse(json.dumps({"success": True}), content_type='application/json')
