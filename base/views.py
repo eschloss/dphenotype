@@ -21,6 +21,38 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
     for qi in questions_instances:
         template = qi.question_template
         question_dict = {"instance_id": qi.pk, "text": template.text, "order": template.order, "type": type}
+        if type == "multiple_choice":
+            if template.multiple_choice1:
+                question_dict["mc1"] = template.multiple_choice1
+            if template.multiple_choice2:
+                question_dict["mc2"] = template.multiple_choice2
+            if template.multiple_choice3:
+                question_dict["mc3"] = template.multiple_choice3
+            if template.multiple_choice4:
+                question_dict["mc4"] = template.multiple_choice4
+            if template.multiple_choice5:
+                question_dict["mc5"] = template.multiple_choice5
+            if template.multiple_choice6:
+                question_dict["mc6"] = template.multiple_choice6
+            if template.multiple_choice7:
+                question_dict["mc7"] = template.multiple_choice7
+            if template.multiple_choice8:
+                question_dict["mc8"] = template.multiple_choice8
+            if template.multiple_choice9:
+                question_dict["mc9"] = template.multiple_choice9
+            if template.multiple_choice10:
+                question_dict["mc10"] = template.multiple_choice10
+            if template.include_other_field:
+                question_dict["other"] = template.other_field_label
+        if type == "numbers":
+            question_dict["as_range"] = template.view_as_range
+            question_dict["range_min"] = template.range_min
+            question_dict["range_max"] = template.range_max
+            if template.range_min_label:
+                question_dict["range_min_label"] = template.range_min_label
+            if template.range_max_label:
+                question_dict["range_max_label"] = template.range_max_label
+
         if template.question_group:
             group = template.question_group
             group_dict = {"text": group.text, "order": group.order, "questions": {}}
