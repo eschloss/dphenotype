@@ -136,7 +136,7 @@ def set_question_instance(request):
 
         for key, val in data['answers'].items():
             if re.search(r'^mc_|^ft_|^n_', key):
-                qid = re.search(r'_([^_]*$)', key).group()
+                qid = re.search(r'_([^_]*$)', key).group(1)
                 answer = val
                 if re.search(r'^mc_', key):
                     if val == 'o' and data['answers']['mco_%s' % qid]:
