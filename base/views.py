@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from base.models import *
-import json
+import json, re
 
 
 def home(request):
@@ -122,12 +122,24 @@ TYPE_TO_MODEL = {
 }
 
 
+from django.views.decorators.csrf import csrf_exempt
 # this is called when a user answers a question
+@csrf_exempt
 def set_question_instance(request):
     if request.GET.__contains__("user_id"):
         profile = Profile.objects.get(user_id=request.GET["user_id"])
 
         print(request.GET)
+        for key, val in request.GET.items():
+            if re.search(r'^q_', key):
+                qid = re.search(r'_([^_]*$)', key).group()
+                if re.search(r'q_mc_', key):
+                    pass
+                elif re.search(r'q_ft_', key):
+                    pass
+                elif re.search(r'q_n_', key):
+                    pass
+
         if request.GET.__contains__("instance_id") and request.GET.__contains__("value") and request.GET.__contains__("type"):
             type = request.GET["type"]
             if type in TYPE_TO_MODEL:
