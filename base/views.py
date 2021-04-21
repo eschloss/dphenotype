@@ -22,28 +22,31 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
         template = qi.question_template
         question_dict = {"instance_id": qi.pk, "text": template.text, "order": template.order, "type": type}
         if type == "multiple_choice":
+            mc_list = []
             if template.multiple_choice1:
-                question_dict["mc1"] = template.multiple_choice1
+                mc_list.append({"id": "1", "text": template.multiple_choice1})
             if template.multiple_choice2:
-                question_dict["mc2"] = template.multiple_choice2
+                mc_list.append({"id": "2", "text": template.multiple_choice2})
             if template.multiple_choice3:
-                question_dict["mc3"] = template.multiple_choice3
+                mc_list.append({"id": "3", "text": template.multiple_choice3})
             if template.multiple_choice4:
-                question_dict["mc4"] = template.multiple_choice4
+                mc_list.append({"id": "4", "text": template.multiple_choice4})
             if template.multiple_choice5:
-                question_dict["mc5"] = template.multiple_choice5
+                mc_list.append({"id": "5", "text": template.multiple_choice5})
             if template.multiple_choice6:
-                question_dict["mc6"] = template.multiple_choice6
+                mc_list.append({"id": "6", "text": template.multiple_choice6})
             if template.multiple_choice7:
-                question_dict["mc7"] = template.multiple_choice7
+                mc_list.append({"id": "7", "text": template.multiple_choice7})
             if template.multiple_choice8:
-                question_dict["mc8"] = template.multiple_choice8
+                mc_list.append({"id": "8", "text": template.multiple_choice8})
             if template.multiple_choice9:
-                question_dict["mc9"] = template.multiple_choice9
+                mc_list.append({"id": "9", "text": template.multiple_choice9})
             if template.multiple_choice10:
-                question_dict["mc10"] = template.multiple_choice10
+                mc_list.append({"id": "10", "text": template.multiple_choice10})
+            question_list["options"] = mc_list
+
             if template.include_other_field:
-                question_dict["other"] = template.other_field_label
+                question_list["other"] = template.other_field_label if template.other_field_label else "other"
         if type == "numbers":
             question_dict["as_range"] = template.view_as_range
             question_dict["range_min"] = template.range_min
