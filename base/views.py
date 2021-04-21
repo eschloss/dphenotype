@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from base.models import *
-import json, re
+import json, re, datetime
 
 
 def home(request):
@@ -135,28 +135,26 @@ def set_question_instance(request):
         profile = Profile.objects.get(user_id=data["user_id"])
 
         for key, val in data['answers'].items():
-            if re.search(r'^mc_|^ft_|^n_', key):
-                qid = re.search(r'_([^_]*$)', key).group(1)
-                answer = val
-                if re.search(r'^mc_', key):
-                    if val == 'o' and data['answers']['mco_%s' % qid]:
-                        answer = data['answers']['mco_%s' % qid]
-                elif re.search(r'^ft_', key):
-                    pass
-                elif re.search(r'^n_', key):
-                    pass
-                print("%s ---- %s" % (key, answer))
+            try:
+                if re.search(r'^mc_|^ft_|^n_', key):
+                    qid = re.search(r'_([^_]*$)', key).group(1)
+                    answer = val
+                    if re.search(r'^mc_', key):
+                        instance = MultipleChoiceQuestionInstance.objects.get(pk=qid, profile=profile)
+                        if val == 'o' and data['answers']['mco_%s' % qid]:
+                            instance.other_value = data['answers']['mco_%s' % qid]
+                    elif re.search(r'^ft_', key):
+                        instance = FreeTextQuestionInstance.objects.get(pk=qid, profile=profile)
+                    elif re.search(r'^n_', key):
+                        instance = NumberQuestionInstance.objects.get(pk=qid, profile=profile)
+                    instance.value = answer
+                    instance.answered = datetime.datetime.utcnow()
+                    instance.save()
+                    print("%s ---- %s" % (key, answer))
+            except:
+                pass
 
-        if request.POST.__contains__("instance_id") and request.POST.__contains__("value") and request.POST.__contains__("type"):
-            type = request.POST["type"]
-            if type in TYPE_TO_MODEL:
-                instance = TYPE_TO_MODEL[type].objects.get(pk=int(request.POST["instance_id"]))
-                instance.value = request.POST["value"]
-                if request.POST.__contains__("other_value"):
-                    instance.other_value = request.POST["other_value"]
-                instance.answered = datetime.datetime.now()
-                instance.save()
-                return HttpResponse(json.dumps({"success": True}), content_type='application/json')
+        return HttpResponse(json.dumps({"success": True}), content_type='application/json')
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
 
 
