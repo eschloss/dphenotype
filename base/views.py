@@ -141,7 +141,7 @@ def set_question_instance(request):
                     answer = val
                     if re.search(r'^mc_', key):
                         instance = MultipleChoiceQuestionInstance.objects.get(pk=qid, profile=profile)
-                        if val == 'o' and data['answers']['mco_%s' % qid]:
+                        if val == 'o' and 'mco_%s' % qid in data['answers']:
                             instance.other_value = data['answers']['mco_%s' % qid]
                     elif re.search(r'^ft_', key):
                         instance = FreeTextQuestionInstance.objects.get(pk=qid, profile=profile)
