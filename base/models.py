@@ -161,7 +161,7 @@ class MultipleChoiceQuestionInstance(QuestionInstance):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        dependentSections = QuestionSection.objects.filter(is_baseline=True, is_dependent_on_question=True, dependent_question=self.pk)
+        dependentSections = QuestionSection.objects.filter(is_baseline=True, is_dependent_on_question=True, dependent_question=self.question_template)
         for ds in dependentSections:
             answers = map(lambda a: a.strip(), ds.dependent_question_answers.split(","))
             if str(self.value) in answers:
