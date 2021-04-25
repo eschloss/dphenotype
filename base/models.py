@@ -79,7 +79,7 @@ class QuestionSection(models.Model):
     order = models.IntegerField(default=0)
     is_baseline = models.BooleanField(default=True, help_text="Is this section part of a baseline questionnaire?")
     is_dependent_on_question = models.BooleanField(default=False, help_text="Is this section dependent on the answer to a specific question?")
-    dependent_question = models.ForeignKey("MultipleChoiceQuestionTemplate", blank=True, null=True, help_text="Choose the dependent question", on_delete=models.PROTECT)
+    dependent_question = models.ForeignKey("MultipleChoiceQuestionTemplate", blank=True, null=True, help_text="Choose the dependent question", on_delete=models.CASCADE)
     dependent_question_answers = models.CharField(max_length=100, blank=True, null=True, help_text="Choose the answer(s) necessary for the dependent quesiton in order to show this question. Separate multiple acceptable answers with a comma.")
 
     def __str__(self):
@@ -87,7 +87,7 @@ class QuestionSection(models.Model):
 
 
 class QuestionGroup(models.Model):
-    question_section = models.ForeignKey("QuestionSection", blank=True, null=True, on_delete=models.PROTECT)
+    question_section = models.ForeignKey("QuestionSection", blank=True, null=True, on_delete=models.CASCADE)
     text = models.TextField()
     order = models.IntegerField(default=0)
 
@@ -97,7 +97,7 @@ class QuestionGroup(models.Model):
 
 class QuestionTemplate(models.Model):
     text = models.TextField(blank=True)
-    question_group = models.ForeignKey("QuestionGroup", blank=True, null=True, on_delete=models.PROTECT)
+    question_group = models.ForeignKey("QuestionGroup", blank=True, null=True, on_delete=models.CASCADE)
     order = models.IntegerField(default=0)
     one_time_only = models.BooleanField(default=True)
     frequency_interval = models.IntegerField(default=1440, blank=True, null=True, help_text="Minutes between the next time the question is asked. (only fill-in for routine questions)")
@@ -151,7 +151,7 @@ class QuestionInstance(models.Model):
 
 
 class MultipleChoiceQuestionInstance(QuestionInstance):
-    question_template = models.ForeignKey(MultipleChoiceQuestionTemplate, on_delete=models.PROTECT)
+    question_template = models.ForeignKey(MultipleChoiceQuestionTemplate, on_delete=models.CASCADE)
     value = models.IntegerField(blank=True, null=True)
     other_value = models.CharField(max_length=100, blank=True, null=True)
 
@@ -187,7 +187,7 @@ class MultipleChoiceQuestionInstance(QuestionInstance):
 
 
 class NumberQuestionInstance(QuestionInstance):
-    question_template = models.ForeignKey(NumberQuestionTemplate, on_delete=models.PROTECT)
+    question_template = models.ForeignKey(NumberQuestionTemplate, on_delete=models.CASCADE)
     value = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
@@ -195,7 +195,7 @@ class NumberQuestionInstance(QuestionInstance):
 
 
 class FreeTextQuestionInstance(QuestionInstance):
-    question_template = models.ForeignKey(FreeTextQuestionTemplate, on_delete=models.PROTECT)
+    question_template = models.ForeignKey(FreeTextQuestionTemplate, on_delete=models.CASCADE)
     value = models.TextField(blank=True, null=True)
 
     def __str__(self):
