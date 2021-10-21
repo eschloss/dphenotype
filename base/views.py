@@ -20,7 +20,18 @@ def login(request):
 def add_questions_to_dictionaries(questions_instances, type, sections={}, unattached_groups={}, unattached_questions={}):
     for qi in questions_instances:
         template = qi.question_template
-        question_dict = {"instance_id": qi.pk, "text": template.text, "order": template.order, "type": type}
+        question_dict = {"instance_id": qi.pk,
+                         "template_id": template.pk,
+                         "text": template.text,
+                         "order": template.order,
+                         "type": type}
+        if template.is_dependent_on_question:
+            if template.dependent_question_answers:
+                question_dict["dependent_question_answers"] = template.dependent_question_answers
+            if template.dependent_question:
+                question_dict["dependent_question"] = template.dependent_question.pk
+
+
         if type == "multiple_choice":
             mc_list = []
             if template.multiple_choice1:

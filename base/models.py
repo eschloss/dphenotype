@@ -31,10 +31,22 @@ EMOJI_CHOICES = (
     ('20', 'Positive'),
 )
 
+ACCOUNT_TYPE = (
+    ('y', 'youth'),
+    ('c', 'caretaker'),
+)
+QUESTION_AUDIENCE_TYPE = (
+    ('y', 'youth'),
+    ('b', 'both youth and caretaker'),
+)
+
 
 class Profile(models.Model):
     user_id = models.CharField(max_length=100, unique=True)
     created = models.DateTimeField(auto_now_add=True)
+    type = models.CharField(choices=ACCOUNT_TYPE, max_length=1)
+    am = models.FloatField(default=8, help_text="Military time in US Eastern time")
+    pm = models.FloatField(default=20, help_text="Military time in US Eastern time")
 
     def __str__(self):
         return self.user_id
@@ -75,32 +87,62 @@ class Emoji(models.Model):
 
 
 class QuestionSection(models.Model):
-    text = models.TextField()
+    section_name = models.CharField(max_length=100, help_text="only for internal use")
+    text = models.TextField(blank=True)
     order = models.IntegerField(default=0)
-    is_baseline = models.BooleanField(default=True, help_text="Is this section part of a baseline questionnaire?")
+    is_baseline = models.BooleanField(default=False, help_text="Is this section part of a baseline questionnaire?")
+    is_static = models.BooleanField(default=False, help_text="Is this section part of the static section?")
     is_dependent_on_question = models.BooleanField(default=False, help_text="Is this section dependent on the answer to a specific question?")
     dependent_question = models.ForeignKey("MultipleChoiceQuestionTemplate", blank=True, null=True, help_text="Choose the dependent question", on_delete=models.CASCADE)
     dependent_question_answers = models.CharField(max_length=100, blank=True, null=True, help_text="Choose the answer(s) necessary for the dependent quesiton in order to show this question. Separate multiple acceptable answers with a comma.")
 
     def __str__(self):
-        return self.text
+        return self.section_name
 
 
 class QuestionGroup(models.Model):
+    group_name = models.CharField(max_length=100, help_text="only for internal use")
     question_section = models.ForeignKey("QuestionSection", blank=True, null=True, on_delete=models.CASCADE)
-    text = models.TextField()
+    text = models.TextField(blank=True)
     order = models.IntegerField(default=0)
+    send_notification = models.BooleanField(default=False, help_text="does a notification go out for this particular group?")
 
     def __str__(self):
-        return self.text
+        return self.group_name
+
+
+TIMES_CHOICES = (
+    ('a', "AM"),
+    ('p', "PM"),
+    ('r', "random"),
+)
 
 
 class QuestionTemplate(models.Model):
     text = models.TextField(blank=True)
     question_group = models.ForeignKey("QuestionGroup", blank=True, null=True, on_delete=models.CASCADE)
     order = models.IntegerField(default=0)
-    one_time_only = models.BooleanField(default=True)
-    frequency_interval = models.IntegerField(default=1440, blank=True, null=True, help_text="Minutes between the next time the question is asked. (only fill-in for routine questions)")
+    one_time_only = models.BooleanField(default=False)
+    frequency_days = models.IntegerField(default=1, blank=True, null=True, help_text="Days until the next time the question is asked. (leave blank if it's not a routine question).")
+    frequency_time = models.CharField(choices=TIMES_CHOICES, blank=True, null=True, max_length=1)
+    threshold = models.TextField(default="", help_text="comma separated list of threshold triggering words", blank=True, null=True)
+    send_notification = models.BooleanField(default=False, help_text="does a notification go out for this particular question?")
+    who_receives = models.CharField(choices=QUESTION_AUDIENCE_TYPE, max_length=1)
+    always_available = models.BooleanField(default=False, help_text="Does a new Instance get created right after the instance is answered?")
+    is_dependent_on_questions = models.BooleanField(default=False, help_text="Is this section dependent on the answer to other questions?")
+    dependent_question = models.ForeignKey("MultipleChoiceQuestionTemplate", blank=True, null=True, help_text="Choose the dependent question", on_delete=models.CASCADE)
+    dependent_question_answers = models.CharField(max_length=100, blank=True, null=True, help_text="Choose the answer(s) necessary for the dependent quesiton in order to show this question. Separate multiple acceptable answers with a comma.")
+    """ Note: the dependent questions should be generated always, 
+    but just kept hidden within the App until the correct answers are selected.
+    There are three types of dependencies:
+        1) A whole Question section is dependent on a MultipleChoice Question (fields in QuestionSection model)
+        2) Question shows up when any of the MC questions within a QuestionGroup are triggered
+            dependent_question is null 
+            dependent_question_answers
+        3) Question shows up when one specific MC Question is triggered 
+            dependent_question is set to something
+            dependent_question_answers
+    """
 
     class Meta:
         abstract = True
@@ -145,6 +187,8 @@ class QuestionInstance(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     answered = models.DateTimeField(blank=True, null=True)
+    notification_count = models.IntegerField(default=0)
+    last_notification = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -200,3 +244,4 @@ class FreeTextQuestionInstance(QuestionInstance):
 
     def __str__(self):
         return "%s - %s - %s" % (str(self.profile), str(self.created), str(self.question_template))
+

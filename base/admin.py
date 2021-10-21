@@ -3,12 +3,12 @@ from base.models import *
 
 
 class QuestionSectionAdmin(admin.ModelAdmin):
-    list_display = ('text', 'order',)
+    list_display = ('section_name', 'order',)
     list_filter = ()
 
 
 class QuestionGroupAdmin(admin.ModelAdmin):
-    list_display = ('text', 'question_section', 'order',)
+    list_display = ('group_name', 'question_section', 'order',)
     list_filter = ()
 
 
