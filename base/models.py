@@ -38,6 +38,7 @@ ACCOUNT_TYPE = (
 QUESTION_AUDIENCE_TYPE = (
     ('y', 'youth'),
     ('b', 'both youth and caretaker'),
+    ('c', 'caregiver ONLY'),
 )
 
 
