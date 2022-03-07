@@ -232,6 +232,7 @@ class ExpoPushToken(models.Model):
 
 class ValidStudyID(models.Model):
     study_id = models.CharField(max_length=60)
+    type = models.CharField(choices=ACCOUNT_TYPE, max_length=1, default='y')
 
 class PassiveData(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.PROTECT)
@@ -262,9 +263,9 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
 def generate_question_instances(pk):
     profile = Profile.objects.get(pk=pk)
 
-    for mct in MultipleChoiceQuestionTemplate.objects.all().exclude(question_group__question_section__is_dependent_on_question=True):
+    for mct in MultipleChoiceQuestionTemplate.objects.filter(who_receives__in=('b', profile.type)).exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, mct, MultipleChoiceQuestionInstance)
-    for ftt in FreeTextQuestionTemplate.objects.all().exclude(question_group__question_section__is_dependent_on_question=True):
+    for ftt in FreeTextQuestionTemplate.objects.filter(who_receives__in=('b', profile.type)).exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, ftt, FreeTextQuestionInstance)
-    for nt in NumberQuestionTemplate.objects.all().exclude(question_group__question_section__is_dependent_on_question=True):
+    for nt in NumberQuestionTemplate.objects.filter(who_receives__in=('b', profile.type)).exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, nt, NumberQuestionInstance)
