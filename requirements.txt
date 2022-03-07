@@ -5,4 +5,4 @@ uwsgi==2.0.19.1
 gevent==20.12.1
 redis==3.5.3
 celery[sqs]==5.0.5
-newrelic
+exponent_server_sdk==2.0.0

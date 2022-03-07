@@ -48,6 +48,7 @@ class Profile(models.Model):
     type = models.CharField(choices=ACCOUNT_TYPE, max_length=1)
     am = models.FloatField(default=8, help_text="Military time in US Eastern time")
     pm = models.FloatField(default=20, help_text="Military time in US Eastern time")
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.user_id
@@ -56,29 +57,7 @@ class Profile(models.Model):
         about_to_add = self._state.adding
         super().save(*args, **kwargs)
 
-        if about_to_add:
-            #generate baseline Questions
-            question_sections = QuestionSection.objects.filter(is_baseline=True, is_dependent_on_question=False)
-            for section in question_sections:
-                question_groups = section.questiongroup_set.all()
-                for group in question_groups:
-                    #create multiple choice question instances
-                    question_templates = group.multiplechoicequestiontemplate_set.all()
-                    for question_template in question_templates:
-                        qi = MultipleChoiceQuestionInstance(profile=self, question_template=question_template)
-                        qi.save()
-
-                    #create number question instances
-                    question_templates = group.numberquestiontemplate_set.all()
-                    for question_template in question_templates:
-                        qi = NumberQuestionInstance(profile=self, question_template=question_template)
-                        qi.save()
-
-                    #create free text question instances
-                    question_templates = group.freetextquestiontemplate_set.all()
-                    for question_template in question_templates:
-                        qi = FreeTextQuestionInstance(profile=self, question_template=question_template)
-                        qi.save()
+        generate_question_instances.delay(self.pk)
 
 
 class Emoji(models.Model):
@@ -130,7 +109,7 @@ class QuestionTemplate(models.Model):
     send_notification = models.BooleanField(default=False, help_text="does a notification go out for this particular question?")
     who_receives = models.CharField(choices=QUESTION_AUDIENCE_TYPE, max_length=1)
     always_available = models.BooleanField(default=False, help_text="Does a new Instance get created right after the instance is answered?")
-    is_dependent_on_questions = models.BooleanField(default=False, help_text="Is this section dependent on the answer to other questions?")
+    is_dependent_on_question = models.BooleanField(default=False, help_text="Is this section dependent on the answer to other questions?")
     dependent_question = models.ForeignKey("MultipleChoiceQuestionTemplate", blank=True, null=True, help_text="Choose the dependent question", on_delete=models.CASCADE)
     dependent_question_answers = models.CharField(max_length=100, blank=True, null=True, help_text="Choose the answer(s) necessary for the dependent quesiton in order to show this question. Separate multiple acceptable answers with a comma.")
     """ Note: the dependent questions should be generated always, 
@@ -246,3 +225,45 @@ class FreeTextQuestionInstance(QuestionInstance):
     def __str__(self):
         return "%s - %s - %s" % (str(self.profile), str(self.created), str(self.question_template))
 
+class ExpoPushToken(models.Model):
+    token = models.CharField(max_length=60)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+class ValidStudyID(models.Model):
+    study_id = models.CharField(max_length=60)
+
+class PassiveData(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.PROTECT)
+    data = models.JSONField()
+    type = models.CharField(max_length=30)
+    time = models.DateTimeField(blank=True, null=True) #time of data measurement
+    unique_id = models.CharField(max_length=40)
+    added = models.DateTimeField(auto_now_add=True)
+
+def create_question_instance_if_needed(profile, questionTemplate, QuestionInstanceModel):
+    save_new_instance = False
+    now = datetime.datetime.now(tz=EST5EDT())
+    last_questioninstance = QuestionInstanceModel.objects.filter(profile=profile, question_template=questionTemplate).order_by('-created')
+    if len(last_questioninstance) == 0:
+        if now > profile.created + datetime.timedelta(days=questionTemplate.start_days) - datetime.timedelta(hours=2):
+            save_new_instance = True
+    else:
+        if not questionTemplate.one_time_only:
+            last_questioninstance = last_questioninstance[0]
+            if last_questioninstance.value and questionTemplate.frequency_days and now > last_questioninstance.created + datetime.timedelta(days=questionTemplate.frequency_days) - datetime.timedelta(hours=2):
+                save_new_instance = True
+
+    if save_new_instance:
+        new_questioninstance = QuestionInstanceModel(profile=profile, question_template=questionTemplate)
+        new_questioninstance.save()
+
+@shared_task
+def generate_question_instances(pk):
+    profile = Profile.objects.get(pk=pk)
+
+    for mct in MultipleChoiceQuestionTemplate.objects.all().remove(question_group__question_section__is_dependent_on_section=True):
+        create_question_instance_if_needed(profile, mct, MultipleChoiceQuestionInstance)
+    for ftt in FreeTextQuestionTemplate.objects.all().remove(question_group__question_section__is_dependent_on_section=True):
+        create_question_instance_if_needed(profile, ftt, FreeTextQuestionInstance)
+    for nt in NumberQuestionTemplate.objects.all().remove(question_group__question_section__is_dependent_on_section=True):
+        create_question_instance_if_needed(profile, nt, NumberQuestionInstance)

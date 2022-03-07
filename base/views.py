@@ -12,8 +12,9 @@ def home(request):
 
 def login(request):
     if request.GET.__contains__("user_id"):
-        profile, is_new = Profile.objects.get_or_create(user_id=request.GET["user_id"])
-        return HttpResponse(json.dumps({"success": True, "is_new": is_new }), content_type='application/json')
+        if ValidStudyID.objects.filter(study_id=request.GET["user_id"]).count() > 0:
+            profile, is_new = Profile.objects.get_or_create(user_id=request.GET["user_id"])
+            return HttpResponse(json.dumps({"success": True, "is_new": is_new }), content_type='application/json')
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
 
 
@@ -136,13 +137,53 @@ TYPE_TO_MODEL = {
     "number": NumberQuestionInstance,
 }
 
+def add_passive_data(request):
+    logging.error("PD: PASSIVE DATA ATTEMPT")
+    data = json.loads(request.body.decode('utf-8'))
+    logging.error("PD: PASSIVE DATA LOADED")
+    if data.__contains__("user_id"):
+        logging.error("PD: USER LOADED")
+        logging.error("PD: " + data["user_id"])
+        try:
+            profile = Profile.objects.get(user_id=data["user_id"])
+            logging.error("PD: profile loaded")
+        except:
+            return HttpResponse(json.dumps({"success": False}), content_type='application/json')
+        logging.error("PD: passive data")
+        passive = data["passive"]
+        type = passive["type"]
+        readings = passive["readings"]
+        logging.error(str(len(readings)) + " readings")
+        for reading in readings:
+            logging.error(json.dumps(reading))
+            id = "0"
+            if "id" in reading:
+                id = reading["id"]
+            elif "end" in reading:
+                id = reading["end"]
+            elif "endDate" in reading:
+                id = reading["endDate"]
+            pds = PassiveData.objects.filter(profile=profile, type=type, unique_id=id)
+            if len(pds) == 0:
+                endDate = None
+                if "endDate" in reading:
+                    endDate = reading["endDate"]
+                elif "end" in reading:
+                    endDate = reading["end"]
+                pd = PassiveData(profile=profile, type=type, unique_id=id, data=reading, time=endDate)
+                pd.save()
+        return HttpResponse(json.dumps({"success": True}), content_type='application/json')
+    return HttpResponse(json.dumps({"success": False}), content_type='application/json')
+
 
 # this is called when a user answers a question
 def set_question_instance(request):
     data = json.loads(request.body.decode('utf-8'))
-    print(data)
     if data.__contains__("user_id"):
-        profile = Profile.objects.get(user_id=data["user_id"])
+        try:
+            profile = Profile.objects.get(user_id=data["user_id"])
+        except:
+            return HttpResponse(json.dumps({"success": False}), content_type='application/json')
 
         for key, val in data['answers'].items():
             try:
@@ -168,6 +209,19 @@ def set_question_instance(request):
         return HttpResponse(json.dumps({"success": True}), content_type='application/json')
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
 
+def set_notification_token(request):
+    if request.GET.__contains__("user_id"):
+        profile = Profile.objects.get(user_id=request.GET["user_id"])
+        if request.GET.__contains__("token"):
+            try:
+                etoken = ExpoPushToken.objects.filter(profile=profile)
+                etoken = etoken[0]
+            except:
+                etoken = ExpoPushToken(profile=profile)
+            etoken.token = request.GET["token"]
+            etoken.save()
+            return HttpResponse(json.dumps({"success": True}), content_type='application/json')
+    return HttpResponse(json.dumps({"success": False}), content_type='application/json')
 
 def get_past_emojis(request):
     if request.GET.__contains__("user_id"):

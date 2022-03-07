@@ -31,7 +31,7 @@ except:
 try:
     SECRET_KEY = os.environ['SECRET_KEY']
 except:
-    SECRET_KEY = 'hkjsf823hjksdfbskjhsfuiis726ghfFI@J'
+    SECRET_KEY = 'hk98ysgyusdyihsfyiuwhsgyckjsbjvgh2ufikh@J'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not IS_PRODUCTION
@@ -124,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'EST'
 
 USE_I18N = True
 
@@ -136,7 +136,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-CELERY_BROKER_URL = "sqs://"
+try:
+    CELERY_BROKER_URL = os.environ['CLOUDAMQP_URL']
+except:
+    CELERY_BROKER_URL = "sqs://"
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'region': 'us-east-1',
     'polling_interval': 5,
@@ -173,6 +176,8 @@ SMTP_USE_TLS = CLOUDMAILIN_EMAIL_USE_TLS
 """
 
 # keep on bottom
+""" #UNCOMMENT IF USING AWS RDS databases
 if IS_PRODUCTION:
     django_heroku.settings(locals())
     del DATABASES['default']['OPTIONS']['sslmode']
+"""
