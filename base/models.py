@@ -261,9 +261,9 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
 def generate_question_instances(pk):
     profile = Profile.objects.get(pk=pk)
 
-    for mct in MultipleChoiceQuestionTemplate.objects.all().remove(question_group__question_section__is_dependent_on_section=True):
+    for mct in MultipleChoiceQuestionTemplate.objects.all().exclude(question_group__question_section__is_dependent_on_section=True):
         create_question_instance_if_needed(profile, mct, MultipleChoiceQuestionInstance)
-    for ftt in FreeTextQuestionTemplate.objects.all().remove(question_group__question_section__is_dependent_on_section=True):
+    for ftt in FreeTextQuestionTemplate.objects.all().exclude(question_group__question_section__is_dependent_on_section=True):
         create_question_instance_if_needed(profile, ftt, FreeTextQuestionInstance)
-    for nt in NumberQuestionTemplate.objects.all().remove(question_group__question_section__is_dependent_on_section=True):
+    for nt in NumberQuestionTemplate.objects.all().exclude(question_group__question_section__is_dependent_on_section=True):
         create_question_instance_if_needed(profile, nt, NumberQuestionInstance)
