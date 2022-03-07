@@ -104,6 +104,7 @@ class QuestionTemplate(models.Model):
     order = models.IntegerField(default=0)
     one_time_only = models.BooleanField(default=False)
     frequency_days = models.IntegerField(default=1, blank=True, null=True, help_text="Days until the next time the question is asked. (leave blank if it's not a routine question).")
+    start_days = models.IntegerField(default=0) #days after User joins to first create this question
     frequency_time = models.CharField(choices=TIMES_CHOICES, blank=True, null=True, max_length=1)
     threshold = models.TextField(default="", help_text="comma separated list of threshold triggering words", blank=True, null=True)
     send_notification = models.BooleanField(default=False, help_text="does a notification go out for this particular question?")
