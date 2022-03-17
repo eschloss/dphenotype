@@ -20,6 +20,7 @@ def generate_question_instances_for_all_profiles():
     for p in profiles:
         generate_question_instances.delay(p.pk)
 
+@shared_task
 def send_push_notification(pk):
     token = ExpoPushToken.objects.filter(profile__pk=pk)
     if len(token) > 0:
@@ -29,7 +30,7 @@ def send_push_notification(pk):
 def send_push_notifications():
     profiles = Profile.objects.filter(is_active=True)
     for p in profiles:
-        send_push_notification(p.pk)
+        send_push_notification.delay(p.pk)
 
 # Basic arguments. You should extend this function with the push features you
 # want to use, or simply pass in a `PushMessage` object.
