@@ -22,7 +22,7 @@ send_notification.short_description = "Send Notification"
 
 class ExpoPushTokenAdmin(admin.ModelAdmin):
     list_display = ('profile', 'token')
-    actions = (send_notification, refresh_token_admin)
+    actions = (send_notification, )
 
 class EmojiAdmin(admin.ModelAdmin):
     list_display = ('profile', 'emoji', 'created',)
