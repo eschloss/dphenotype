@@ -1,6 +1,6 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from base.models import *
-import json, re, datetime
+import json, re, datetime, logging, base64, requests
 
 
 def home(request):
@@ -156,9 +156,8 @@ def add_passive_data(request):
         passive = data["passive"]
         type = passive["type"]
         readings = passive["readings"]
-        logging.error(str(len(readings)) + " readings")
+
         for reading in readings:
-            logging.error(json.dumps(reading))
             id = "0"
             if "id" in reading:
                 id = reading["id"]
@@ -166,6 +165,8 @@ def add_passive_data(request):
                 id = reading["end"]
             elif "endDate" in reading:
                 id = reading["endDate"]
+            elif "timestamp" in reading:
+                id = reading["timestamp"]
             pds = PassiveData.objects.filter(profile=profile, type=type, unique_id=id)
             if len(pds) == 0:
                 endDate = None
