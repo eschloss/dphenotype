@@ -106,10 +106,11 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_PASS'),
         'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
         'PORT': os.environ.get('DB_PORT', ''),
+        #'CONN_MAX_AGE': 600,
     },
 }
 
-DATABASES['default']['CONN_MAX_AGE'] = None
+#DATABASES['default']['CONN_MAX_AGE'] = None
 
 
 # Password validation
