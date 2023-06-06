@@ -98,17 +98,25 @@ import dj_database_url
 #DATABASES = {}
 #DATABASES['default'] = dj_database_url.config()
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_NAME', ''),
-        'USER': os.environ.get('DB_USER', ''),
-        'PASSWORD': os.environ.get('DB_PASS'),
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DB_PORT', ''),
-        'CONN_MAX_AGE': 600,
-    },
-}
+if "DB_NAME" in os.environ and "DB_HOST" in os.environ and "DB_PASS" in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.environ.get('DB_NAME', 'default'),
+            'USER': os.environ.get('DB_USER', 'default'),
+            'PASSWORD': os.environ.get('DB_PASS'),
+            'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+            'PORT': os.environ.get('DB_PORT', ''),
+            'CONN_MAX_AGE': 600,
+        },
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 
 #DATABASES['default']['CONN_MAX_AGE'] = None
@@ -149,6 +157,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
+
+THRESHOLD_EMAIL = os.environ.get('THRESHOLD_EMAIL', 'eric.schlossberg@gmail.com')
 
 try:
     CELERY_BROKER_URL = os.environ['CLOUDAMQP_URL']

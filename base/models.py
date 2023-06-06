@@ -2,9 +2,13 @@ from django.db import models
 from django.db.models import Sum
 import datetime
 import math
+import random
 from base.eastern_time import EST5EDT
 from decimal import Decimal
 from celery import shared_task
+from base.tasks import send_push_notification, PushType
+from django.core.mail import send_mail
+from config.settings import THRESHOLD_EMAIL
 
 
 # Must Match the emojis on the apps
@@ -47,11 +51,19 @@ class Profile(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     type = models.CharField(choices=ACCOUNT_TYPE, max_length=1)
     am = models.FloatField(default=8, help_text="Military time in US Eastern time")
-    pm = models.FloatField(default=20, help_text="Military time in US Eastern time")
+    pm = models.FloatField(default=20, help_text="Military time in US Eastern time - must be earlier than 24 (before midnight)")
+    next_random = models.FloatField(default=16)
     is_active = models.BooleanField(default=True)
+    last_am_push = models.DateTimeField(auto_now_add=True)
+    last_pm_push = models.DateTimeField(auto_now_add=True)
+    last_generated = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user_id
+
+    def reset_next_random(self):
+        self.next_random = random.uniform(self.am, self.pm)
+        self.save()
 
     def save(self, *args, **kwargs):
         about_to_add = self._state.adding
@@ -110,7 +122,7 @@ class QuestionTemplate(models.Model):
     send_notification = models.BooleanField(default=False, help_text="does a notification go out for this particular question?")
     who_receives = models.CharField(choices=QUESTION_AUDIENCE_TYPE, max_length=1)
     always_available = models.BooleanField(default=False, help_text="Does a new Instance get created right after the instance is answered?")
-    is_dependent_on_question = models.BooleanField(default=False, help_text="Is this section dependent on the answer to other questions?")
+    is_dependent_on_question = models.BooleanField(default=False, help_text="Is this question dependent on the answer to other questions?")
     dependent_question = models.ForeignKey("MultipleChoiceQuestionTemplate", blank=True, null=True, help_text="Choose the dependent question", on_delete=models.CASCADE)
     dependent_question_answers = models.CharField(max_length=100, blank=True, null=True, help_text="Choose the answer(s) necessary for the dependent quesiton in order to show this question. Separate multiple acceptable answers with a comma.")
     """ Note: the dependent questions should be generated always, 
@@ -133,7 +145,6 @@ class QuestionTemplate(models.Model):
             return "%s %s" % (str(self.question_group), self.text)
         else:
             return self.text
-
 
 class MultipleChoiceQuestionTemplate(QuestionTemplate):
     multiple_choice1 = models.CharField(max_length=50, blank=True, null=True)
@@ -170,9 +181,25 @@ class QuestionInstance(models.Model):
     answered = models.DateTimeField(blank=True, null=True)
     notification_count = models.IntegerField(default=0)
     last_notification = models.DateTimeField(blank=True, null=True)
+    question_template = None
+    value = None
 
     class Meta:
         abstract = True
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.question_template.threshold:
+            threshold_options = map(lambda a: a.strip(), self.question_template.threshold.split(","))
+            for threshold_option in threshold_options:
+                if threshold_option in self.value:
+                    message = f"participant study id = { self.profile.user_id }\n\n"
+                    message += f"Question: { self.question_template }\n\n"
+                    message += f"Answer: { self.value }\n\n"
+                    send_mail(f"Threshold Triggered for Participant {self.profile.user_id}",
+                              message, "info@dphenotype.herokuapp.com",
+                              THRESHOLD_EMAIL)
 
 
 class MultipleChoiceQuestionInstance(QuestionInstance):
@@ -186,29 +213,53 @@ class MultipleChoiceQuestionInstance(QuestionInstance):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        dependentSections = QuestionSection.objects.filter(is_baseline=True, is_dependent_on_question=True, dependent_question=self.question_template)
-        for ds in dependentSections:
-            answers = map(lambda a: a.strip(), ds.dependent_question_answers.split(","))
-            if str(self.value) in answers:
-                question_groups = ds.questiongroup_set.all()
-                for group in question_groups:
-                    # create multiple choice question instances
-                    question_templates = group.multiplechoicequestiontemplate_set.all()
-                    for question_template in question_templates:
-                        qi = MultipleChoiceQuestionInstance(profile=self.profile, question_template=question_template)
-                        qi.save()
+        if self.value:
+            dependentSections = QuestionSection.objects.filter(is_dependent_on_question=True, dependent_question=self.question_template)
+            for ds in dependentSections:
+                answers = map(lambda a: a.strip(), ds.dependent_question_answers.split(","))
+                if str(self.value) in answers:
+                    question_groups = ds.questiongroup_set.all()
+                    for group in question_groups:
+                        # create multiple choice question instances
+                        question_templates = group.multiplechoicequestiontemplate_set.all()
+                        for question_template in question_templates:
+                            qi = MultipleChoiceQuestionInstance(profile=self.profile, question_template=question_template)
+                            qi.save()
 
-                    # create number question instances
-                    question_templates = group.numberquestiontemplate_set.all()
-                    for question_template in question_templates:
-                        qi = NumberQuestionInstance(profile=self.profile, question_template=question_template)
-                        qi.save()
+                        # create number question instances
+                        question_templates = group.numberquestiontemplate_set.all()
+                        for question_template in question_templates:
+                            qi = NumberQuestionInstance(profile=self.profile, question_template=question_template)
+                            qi.save()
 
-                    # create free text question instances
-                    question_templates = group.freetextquestiontemplate_set.all()
-                    for question_template in question_templates:
-                        qi = FreeTextQuestionInstance(profile=self.profile, question_template=question_template)
-                        qi.save()
+                        # create free text question instances
+                        question_templates = group.freetextquestiontemplate_set.all()
+                        for question_template in question_templates:
+                            qi = FreeTextQuestionInstance(profile=self.profile, question_template=question_template)
+                            qi.save()
+
+            """ Note: this isn't necessary because the mobile app keeps dependent questions hidden until they are triggered
+            dependentQuestions = MultipleChoiceQuestionTemplate.objects.filter(is_dependent_on_question=True, dependent_question=self.question_template)
+            for dq in dependentQuestions:
+                answers = map(lambda a: a.strip(), dq.dependent_question_answers.split(","))
+                if str(self.value) in answers:
+                    qi = MultipleChoiceQuestionInstance(profile=self.profile, question_template=dq)
+                    qi.save()
+            dependentQuestions = NumberQuestionTemplate.objects.filter(is_dependent_on_question=True, dependent_question=self.question_template)
+            for dq in dependentQuestions:
+                answers = map(lambda a: a.strip(), dq.dependent_question_answers.split(","))
+                if str(self.value) in answers:
+                    qi = NumberQuestionInstance(profile=self.profile, question_template=dq)
+                    qi.save()
+            dependentQuestions = FreeTextQuestionTemplate.objects.filter(is_dependent_on_question=True, dependent_question=self.question_template)
+            for dq in dependentQuestions:
+                answers = map(lambda a: a.strip(), dq.dependent_question_answers.split(","))
+                if str(self.value) in answers:
+                    qi = FreeTextQuestionInstance(profile=self.profile, question_template=dq)
+                    qi.save()
+            """
+
+
 
 
 class NumberQuestionInstance(QuestionInstance):
@@ -245,27 +296,52 @@ class PassiveData(models.Model):
 def create_question_instance_if_needed(profile, questionTemplate, QuestionInstanceModel):
     save_new_instance = False
     now = datetime.datetime.now(tz=EST5EDT())
+    hour = now.hour + now.minute / 60
     last_questioninstance = QuestionInstanceModel.objects.filter(profile=profile, question_template=questionTemplate).order_by('-created')
+
     if len(last_questioninstance) == 0:
-        if now > profile.created + datetime.timedelta(days=questionTemplate.start_days) - datetime.timedelta(hours=2):
-            save_new_instance = True
+        if now > profile.created + datetime.timedelta(days=questionTemplate.start_days) - datetime.timedelta(hours=2): #start_days
+            if (questionTemplate.frequency_time == 'a' and hour > profile.am or \
+                questionTemplate.frequency_time == 'p' and hour > profile.pm or \
+                questionTemplate.frequency_time == 'r' and hour > profile.next_random):
+                save_new_instance = True
+
     else:
         if not questionTemplate.one_time_only:
             last_questioninstance = last_questioninstance[0]
             if last_questioninstance.value and questionTemplate.frequency_days and now > last_questioninstance.created + datetime.timedelta(days=questionTemplate.frequency_days) - datetime.timedelta(hours=2):
-                save_new_instance = True
+                if (questionTemplate.frequency_time == 'a' and hour > profile.am or \
+                    questionTemplate.frequency_time == 'p' and hour > profile.pm or \
+                    questionTemplate.frequency_time == 'r' and hour > profile.next_random):
+                    save_new_instance = True
 
     if save_new_instance:
         new_questioninstance = QuestionInstanceModel(profile=profile, question_template=questionTemplate)
         new_questioninstance.save()
 
+        if questionTemplate.send_notification:
+            send_push_notification.delay(profile.pk, PushType.PM, questionTemplate.text)
+
+        if questionTemplate.frequency_time == 'r':
+            profile.reset_next_random()
+
 @shared_task
 def generate_question_instances(pk):
     profile = Profile.objects.get(pk=pk)
 
-    for mct in MultipleChoiceQuestionTemplate.objects.filter(who_receives__in=('b', profile.type)).exclude(question_group__question_section__is_dependent_on_question=True):
+    for mct in MultipleChoiceQuestionTemplate.objects \
+            .filter(who_receives__in=('b', profile.type)) \
+            .exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, mct, MultipleChoiceQuestionInstance)
-    for ftt in FreeTextQuestionTemplate.objects.filter(who_receives__in=('b', profile.type)).exclude(question_group__question_section__is_dependent_on_question=True):
+    for ftt in FreeTextQuestionTemplate.objects \
+            .filter(who_receives__in=('b', profile.type)) \
+            .exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, ftt, FreeTextQuestionInstance)
-    for nt in NumberQuestionTemplate.objects.filter(who_receives__in=('b', profile.type)).exclude(question_group__question_section__is_dependent_on_question=True):
+    for nt in NumberQuestionTemplate.objects \
+            .filter(who_receives__in=('b', profile.type)) \
+            .exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, nt, NumberQuestionInstance)
+
+    now = datetime.datetime.now(tz=EST5EDT())
+    profile.last_generated = now
+    profile.save()
