@@ -6,9 +6,10 @@ import random
 from base.eastern_time import EST5EDT
 from decimal import Decimal
 from celery import shared_task
-from base.tasks import send_push_notification, PushType
 from django.core.mail import send_mail
 from config.settings import THRESHOLD_EMAIL
+from enum import Enum
+from django.shortcuts import get_object_or_404
 
 
 # Must Match the emojis on the apps
@@ -63,13 +64,14 @@ class Profile(models.Model):
 
     def reset_next_random(self):
         self.next_random = random.uniform(self.am, self.pm)
-        self.save()
+        self.save(generate_questions=False)
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, generate_questions=True, **kwargs):
         about_to_add = self._state.adding
         super().save(*args, **kwargs)
 
-        generate_question_instances.delay(self.pk)
+        if generate_questions:
+            generate_question_instances.delay(self.pk)
 
 
 class Emoji(models.Model):
@@ -301,7 +303,8 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
 
     if len(last_questioninstance) == 0:
         if now > profile.created + datetime.timedelta(days=questionTemplate.start_days) - datetime.timedelta(hours=2): #start_days
-            if (questionTemplate.frequency_time == 'a' and hour > profile.am or \
+            if (not questionTemplate.frequency_time or \
+                questionTemplate.frequency_time == 'a' and hour > profile.am or \
                 questionTemplate.frequency_time == 'p' and hour > profile.pm or \
                 questionTemplate.frequency_time == 'r' and hour > profile.next_random):
                 save_new_instance = True
@@ -310,7 +313,8 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
         if not questionTemplate.one_time_only:
             last_questioninstance = last_questioninstance[0]
             if last_questioninstance.value and questionTemplate.frequency_days and now > last_questioninstance.created + datetime.timedelta(days=questionTemplate.frequency_days) - datetime.timedelta(hours=2):
-                if (questionTemplate.frequency_time == 'a' and hour > profile.am or \
+                if (not questionTemplate.frequency_time or \
+                    questionTemplate.frequency_time == 'a' and hour > profile.am or \
                     questionTemplate.frequency_time == 'p' and hour > profile.pm or \
                     questionTemplate.frequency_time == 'r' and hour > profile.next_random):
                     save_new_instance = True
@@ -344,4 +348,25 @@ def generate_question_instances(pk):
 
     now = datetime.datetime.now(tz=EST5EDT())
     profile.last_generated = now
-    profile.save()
+    profile.save(generate_questions=False)
+
+class PushType(Enum):
+    AM = 1
+    PM = 2
+
+@shared_task
+def send_push_notification(pk, push_type: PushType, message):
+    profile = get_object_or_404(Profile, pk=pk)
+    token = ExpoPushToken.objects.filter(profile=profile)
+    if len(token) > 0:
+        now = datetime.datetime.now(tz=EST5EDT())
+        six_hours_ago = now - datetime.timedelta(hours=6)
+        hour = now.hour + now.minute / 60
+
+        match push_type:
+            case PushType.AM:
+                if profile.last_am_push < six_hours_ago and hour > profile.am:
+                    send_push_message(token[0].token, message, profile, now, push_type)
+            case PushType.PM:
+                if profile.last_pm_push < six_hours_ago and hour > profile.pm:
+                    send_push_message(token[0].token, message, profile, now, push_type)
