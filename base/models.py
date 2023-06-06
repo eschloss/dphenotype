@@ -8,7 +8,7 @@ from decimal import Decimal
 from celery import shared_task
 from django.core.mail import send_mail
 from config.settings import THRESHOLD_EMAIL
-from enum import Enum
+from enum import IntEnum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -328,7 +328,7 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
         new_questioninstance.save()
 
         if questionTemplate.send_notification:
-            send_push_notification.delay(profile.pk, PushType.PM, questionTemplate.text)
+            send_push_notification.delay(profile.pk, int(PushType.PM), questionTemplate.text)
 
         if questionTemplate.frequency_time == 'r':
             profile.reset_next_random()
@@ -354,12 +354,12 @@ def generate_question_instances(pk):
     profile.last_generated = now
     profile.save(generate_questions=False)
 
-class PushType(Enum):
+class PushType(IntEnum):
     AM = 1
     PM = 2
 
 @shared_task
-def send_push_notification(pk, push_type: PushType, message):
+def send_push_notification(pk, push_type, message):
     profile = get_object_or_404(Profile, pk=pk)
     token = ExpoPushToken.objects.filter(profile=profile)
     if len(token) > 0:

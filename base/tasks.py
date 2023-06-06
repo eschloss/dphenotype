@@ -33,11 +33,11 @@ def send_daily_push_notifications():
 
     profiles = Profile.objects.filter(is_active=True, last_am_push__lte=hours_ago_23, am__lte=hour)
     for p in profiles:
-        send_push_notification.delay(p.pk, PushType.AM, DAILY_NOTIFICATION_MESSAGE)
+        send_push_notification.delay(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE)
 
 # Basic arguments. You should extend this function with the push features you
 # want to use, or simply pass in a `PushMessage` object.
-def send_push_message(token, message, profile, now, push_type: PushType, extra=None):
+def send_push_message(token, message, profile, now, push_type, extra=None):
     try:
         response = PushClient().publish(
             PushMessage(to=token,
