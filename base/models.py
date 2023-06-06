@@ -195,13 +195,15 @@ class QuestionInstance(models.Model):
         if self.question_template.threshold:
             threshold_options = map(lambda a: a.strip(), self.question_template.threshold.split(","))
             for threshold_option in threshold_options:
-                if threshold_option in self.value:
+                if threshold_option in str(self.value):
                     message = f"participant study id = { self.profile.user_id }\n\n"
-                    message += f"Question: { self.question_template }\n\n"
+                    message += f"Question: { self.question_template }\n"
+                    message += f"Question Template ID: { self.question_template.pk }\n"
+                    message += f"Question Instance ID: { self.pk }\n"
                     message += f"Answer: { self.value }\n\n"
                     send_mail(f"Threshold Triggered for Participant {self.profile.user_id}",
                               message, "info@dphenotype.herokuapp.com",
-                              THRESHOLD_EMAIL)
+                              [THRESHOLD_EMAIL,], fail_silently=True)
 
 
 class MultipleChoiceQuestionInstance(QuestionInstance):
