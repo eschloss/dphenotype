@@ -365,10 +365,9 @@ def send_push_notification(pk, push_type: PushType, message):
         six_hours_ago = now - datetime.timedelta(hours=6)
         hour = now.hour + now.minute / 60
 
-        match push_type:
-            case PushType.AM:
-                if profile.last_am_push < six_hours_ago and hour > profile.am:
-                    send_push_message(token[0].token, message, profile, now, push_type)
-            case PushType.PM:
-                if profile.last_pm_push < six_hours_ago and hour > profile.pm:
-                    send_push_message(token[0].token, message, profile, now, push_type)
+        if push_type == PushType.AM:
+            if profile.last_am_push < six_hours_ago and hour > profile.am:
+                send_push_message(token[0].token, message, profile, now, push_type)
+        elif push_type == PushType.PM:
+            if profile.last_pm_push < six_hours_ago and hour > profile.pm:
+                send_push_message(token[0].token, message, profile, now, push_type)

@@ -43,11 +43,10 @@ def send_push_message(token, message, profile, now, push_type: PushType, extra=N
             PushMessage(to=token,
                         body=message,
                         data=extra))
-        match push_type:
-            case PushType.AM:
-                profile.last_am_push = now
-            case PushType.PM:
-                profile.last_pm_push = now
+        if push_type == PushType.AM:
+            profile.last_am_push = now
+        elif push_type == PushType.PM:
+            profile.last_pm_push = now
         profile.save(generate_questions=False)
     except PushServerError as exc:
         # Encountered some likely formatting/validation error.
