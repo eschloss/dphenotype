@@ -10,6 +10,8 @@ from django.core.mail import send_mail
 from config.settings import THRESHOLD_EMAIL
 from enum import Enum
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+
 
 
 # Must Match the emojis on the apps
@@ -55,9 +57,9 @@ class Profile(models.Model):
     pm = models.FloatField(default=20, help_text="Military time in US Eastern time - must be earlier than 24 (before midnight)")
     next_random = models.FloatField(default=16)
     is_active = models.BooleanField(default=True)
-    last_am_push = models.DateTimeField(auto_now_add=True)
-    last_pm_push = models.DateTimeField(auto_now_add=True)
-    last_generated = models.DateTimeField(auto_now_add=True)
+    last_am_push = models.DateTimeField(default=timezone.now)
+    last_pm_push = models.DateTimeField(default=timezone.now)
+    last_generated = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.user_id
