@@ -158,7 +158,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-THRESHOLD_EMAIL = os.environ.get('THRESHOLD_EMAIL', 'eric.schlossberg@gmail.com')
+THRESHOLD_EMAIL = os.environ.get('THRESHOLD_EMAIL', '')
 
 try:
     CELERY_BROKER_URL = os.environ['CLOUDAMQP_URL']
