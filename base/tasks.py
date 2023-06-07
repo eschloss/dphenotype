@@ -2,7 +2,7 @@ import datetime
 import logging
 from base.eastern_time import EST5EDT
 from celery import shared_task
-from base.models import Profile, send_push_notification, PushType
+from base.models import Profile, send_push_notification, PushType, generate_question_instances
 from requests.exceptions import ConnectionError, HTTPError
 import json, re, datetime, logging, base64, requests
 
