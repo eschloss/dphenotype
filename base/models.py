@@ -376,10 +376,10 @@ def send_push_notification(pk, push_type, message):
         hour = now.hour + now.minute / 60
 
         if push_type == PushType.AM:
-            if profile.last_am_push < six_hours_ago and hour > profile.am:
+            if profile.last_am_push < six_hours_ago and hour >= profile.am:
                 send_push_message(token[0].token, message, profile, now, push_type)
         elif push_type == PushType.PM:
-            if profile.last_pm_push < six_hours_ago and hour > profile.pm:
+            if profile.last_pm_push < six_hours_ago and hour >= profile.pm:
                 send_push_message(token[0].token, message, profile, now, push_type)
 
 # Basic arguments. You should extend this function with the push features you

@@ -10,9 +10,9 @@ import json, re, datetime, logging, base64, requests
 @shared_task
 def generate_question_instances_for_all_profiles():
     now = datetime.datetime.now(tz=EST5EDT())
-    hours_ago_1 = now - datetime.timedelta(hours=1)
+    min_time_interval = now - datetime.timedelta(minutes=15)
 
-    profiles = Profile.objects.filter(is_active=True, last_generated__lte=hours_ago_1)
+    profiles = Profile.objects.filter(is_active=True, last_generated__lte=min_time_interval)
     for p in profiles:
         generate_question_instances.delay(p.pk)
 
