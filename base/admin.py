@@ -13,7 +13,7 @@ class QuestionGroupAdmin(admin.ModelAdmin):
 
 class QuestionInstanceAdmin(admin.ModelAdmin):
     list_display = ('profile', 'question_template', 'created', 'answered')
-    list_filter = ('profile', 'question_template')
+    list_filter = (("value", admin.EmptyFieldListFilter), 'profile', 'question_template')
 
 def send_notification(modeladmin, request, queryset):
     for q in queryset:
