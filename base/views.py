@@ -118,14 +118,29 @@ def order_questions_dicts(sections, groups, questions):
 
     return {"sections": sections, "groups": groups, "questions": questions}
 
+def remove_dependent_questions_without_dependency()
+
 
 # this is called when a user goes to the Questions page
 def gather_question_instances(request):
     if request.GET.__contains__("user_id"):
         profile = Profile.objects.get(user_id=request.GET["user_id"])
-        mc_qis = MultipleChoiceQuestionInstance.objects.filter(profile=profile, answered__isnull=True)
-        n_qis = NumberQuestionInstance.objects.filter(profile=profile, answered__isnull=True)
-        ft_qis = FreeTextQuestionInstance.objects.filter(profile=profile, answered__isnull=True)
+
+        potential_dependency_templates = MultipleChoiceQuestionTemplate.objects.filter(is_dependent_on_question=False, multiplechoicequestioninstance__profile=profile, multiplechoicequestioninstance__answered__isnull=True)
+
+        mc_qis = MultipleChoiceQuestionInstance.objects.filter(profile=profile, answered__isnull=True,
+                                                               question_template__is_dependent_on_question=False) | \
+                MultipleChoiceQuestionInstance.objects.filter(profile=profile, answered__isnull=True,
+                                                      question_template__is_dependent_on_question=True, question_template__dependent_question__in=potential_dependency_templates)
+        n_qis = NumberQuestionInstance.objects.filter(profile=profile, answered__isnull=True,
+                                                      question_template__is_dependent_on_question=False) | \
+                NumberQuestionInstance.objects.filter(profile=profile, answered__isnull=True,
+                                                      question_template__is_dependent_on_question=True, question_template__dependent_question__in=potential_dependency_templates)
+        ft_qis = FreeTextQuestionInstance.objects.filter(profile=profile, answered__isnull=True,
+                                                         question_template__is_dependent_on_question=False) | \
+                 FreeTextQuestionInstance.objects.filter(profile=profile, answered__isnull=True,
+                                                         question_template__is_dependent_on_question=True, question_template__dependent_question__in=potential_dependency_templates) | \
+                 FreeTextQuestionInstance.objects.filter(profile=profile, answered__isnull=False, question_template__always_available=True)
         sections, unattached_groups, unattached_questions = add_questions_to_dictionaries(mc_qis, "multiple_choice", {}, {}, {})
         sections, unattached_groups, unattached_questions = add_questions_to_dictionaries(n_qis, "numbers", sections, unattached_groups, unattached_questions)
         sections, unattached_groups, unattached_questions = add_questions_to_dictionaries(ft_qis, "free_text", sections, unattached_groups, unattached_questions)
