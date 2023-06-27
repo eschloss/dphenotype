@@ -158,6 +158,12 @@ class QuestionTemplate(models.Model):
         else:
             return self.text
 
+    def get_notification_text(self):
+        if self.question_group:
+            return self.question_group.text
+        else:
+            return self.text
+
 class MultipleChoiceQuestionTemplate(QuestionTemplate):
     multiple_choice1 = models.CharField(max_length=50, blank=True, null=True)
     multiple_choice2 = models.CharField(max_length=50, blank=True, null=True)
@@ -349,9 +355,9 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
 
     if send_notification:
         if questionTemplate.frequency_time == 'a':
-            send_push_notification.delay(profile.pk, int(PushType.AM), questionTemplate.text)
+            send_push_notification.delay(profile.pk, int(PushType.AM), questionTemplate.get_notification_text())
         elif questionTemplate.frequency_time == 'p':
-            send_push_notification.delay(profile.pk, int(PushType.PM), questionTemplate.text)
+            send_push_notification.delay(profile.pk, int(PushType.PM), questionTemplate.get_notification_text())
 
 @shared_task
 def generate_question_instances(pk):
