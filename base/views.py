@@ -36,7 +36,7 @@ def add_questions_to_dictionaries(questions_instances, type, sections={}, unatta
                 question_dict["dependent_question"] = template.dependent_question.pk
 
         if template.always_available and qi.value:
-            question_dict["text"] += "\n" + qi.value
+            question_dict["text"] += "\n\n" + qi.value
 
         if type == "multiple_choice":
             mc_list = []
