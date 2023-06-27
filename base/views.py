@@ -118,9 +118,6 @@ def order_questions_dicts(sections, groups, questions):
 
     return {"sections": sections, "groups": groups, "questions": questions}
 
-def remove_dependent_questions_without_dependency()
-
-
 # this is called when a user goes to the Questions page
 def gather_question_instances(request):
     if request.GET.__contains__("user_id"):
