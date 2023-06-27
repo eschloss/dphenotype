@@ -307,9 +307,8 @@ class PassiveData(models.Model):
     unique_id = models.CharField(max_length=40)
     added = models.DateTimeField(auto_now_add=True)
 
-def create_question_instance_if_needed(profile, questionTemplate, QuestionInstanceModel):
+def create_question_instance_if_needed(profile, questionTemplate, QuestionInstanceModel, now=datetime.datetime.now(tz=EST5EDT())):
     save_new_instance = False
-    now = datetime.datetime.now(tz=EST5EDT())
     six_hours_ago = now - datetime.timedelta(hours=6)
     hour = now.hour + now.minute / 60
     last_questioninstance = QuestionInstanceModel.objects.filter(profile=profile, question_template=questionTemplate).order_by('-created')
