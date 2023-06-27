@@ -310,8 +310,10 @@ class PassiveData(models.Model):
 def create_question_instance_if_needed(profile, questionTemplate, QuestionInstanceModel):
     save_new_instance = False
     now = datetime.datetime.now(tz=EST5EDT())
+    six_hours_ago = now - datetime.timedelta(hours=6)
     hour = now.hour + now.minute / 60
     last_questioninstance = QuestionInstanceModel.objects.filter(profile=profile, question_template=questionTemplate).order_by('-created')
+    send_notification = False
 
     if len(last_questioninstance) == 0:
         if now > profile.created + datetime.timedelta(days=questionTemplate.start_days) - datetime.timedelta(hours=2): #start_days
@@ -324,22 +326,33 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
     else:
         if not questionTemplate.one_time_only:
             last_questioninstance = last_questioninstance[0]
-            if last_questioninstance.value and questionTemplate.frequency_days and now > last_questioninstance.created + datetime.timedelta(days=questionTemplate.frequency_days) - datetime.timedelta(hours=2):
-                if (not questionTemplate.frequency_time or \
-                    questionTemplate.frequency_time == 'a' and hour > profile.am or \
-                    questionTemplate.frequency_time == 'p' and hour > profile.pm or \
-                    questionTemplate.frequency_time == 'r' and hour > profile.next_random):
-                    save_new_instance = True
+            if questionTemplate.frequency_days and now > last_questioninstance.created + datetime.timedelta(days=questionTemplate.frequency_days) - datetime.timedelta(hours=2):
+                if last_questioninstance.value and now > last_questioninstance.answered + datetime.timedelta(hours=23):
+                    if (not questionTemplate.frequency_time or \
+                        questionTemplate.frequency_time == 'a' and hour > profile.am or \
+                        questionTemplate.frequency_time == 'p' and hour > profile.pm or \
+                        questionTemplate.frequency_time == 'r' and hour > profile.next_random):
+                        save_new_instance = True
+
+                if not save_new_instance and questionTemplate.send_notification and \
+                        not last_questioninstance.value and \
+                        (questionTemplate.frequency_time == 'a' and profile.last_am_push < six_hours_ago and hour >= profile.am) or \
+                        (questionTemplate.frequency_time == 'p' and profile.last_pm_push < six_hours_ago and hour >= profile.pm):
+                    send_notification = True
 
     if save_new_instance:
+        send_notification = questionTemplate.send_notification
         new_questioninstance = QuestionInstanceModel(profile=profile, question_template=questionTemplate)
         new_questioninstance.save()
 
-        if questionTemplate.send_notification:
-            send_push_notification.delay(profile.pk, int(PushType.PM), questionTemplate.text)
-
         if questionTemplate.frequency_time == 'r':
             profile.reset_next_random()
+
+    if send_notification:
+        if questionTemplate.frequency_time == 'a':
+            send_push_notification.delay(profile.pk, int(PushType.AM), questionTemplate.text)
+        elif questionTemplate.frequency_time == 'p':
+            send_push_notification.delay(profile.pk, int(PushType.PM), questionTemplate.text)
 
 @shared_task
 def generate_question_instances(pk):
