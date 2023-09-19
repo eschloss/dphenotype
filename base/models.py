@@ -81,7 +81,7 @@ class Profile(models.Model):
         super().save(*args, **kwargs)
 
         if generate_questions:
-            generate_question_instances.delay(self.pk)
+            generate_question_instances(self.pk)
 
 
 class Emoji(models.Model):
@@ -339,10 +339,10 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
                         questionTemplate.frequency_time == 'r' and hour > profile.next_random):
                         save_new_instance = True
 
-                if not save_new_instance and questionTemplate.send_notification and \
-                        not last_questioninstance.value and \
-                        (questionTemplate.frequency_time == 'a' and profile.last_am_push < six_hours_ago and hour >= profile.am) or \
-                        (questionTemplate.frequency_time == 'p' and profile.last_pm_push < six_hours_ago and hour >= profile.pm):
+                if questionTemplate.send_notification and \
+                        not save_new_instance and not last_questioninstance.value and \
+                        (questionTemplate.frequency_time == 'a' and profile.last_am_push < six_hours_ago and hour >= profile.am or \
+                        questionTemplate.frequency_time == 'p' and profile.last_pm_push < six_hours_ago and hour >= profile.pm):
                     send_notification = True
 
     if save_new_instance:
@@ -355,9 +355,9 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
 
     if send_notification:
         if questionTemplate.frequency_time == 'a':
-            send_push_notification.delay(profile.pk, int(PushType.AM), questionTemplate.get_notification_text())
+            send_push_notification(profile.pk, int(PushType.AM), questionTemplate.get_notification_text())
         elif questionTemplate.frequency_time == 'p':
-            send_push_notification.delay(profile.pk, int(PushType.PM), questionTemplate.get_notification_text())
+            send_push_notification(profile.pk, int(PushType.PM), questionTemplate.get_notification_text())
 
 @shared_task
 def generate_question_instances(pk):

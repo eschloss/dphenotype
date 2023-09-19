@@ -14,7 +14,8 @@ def generate_question_instances_for_all_profiles():
 
     profiles = Profile.objects.filter(is_active=True, last_generated__lte=min_time_interval)
     for p in profiles:
-        generate_question_instances.delay(p.pk)
+        #generate_question_instances.delay(p.pk)
+        generate_question_instances(p.pk)
 
 DAILY_NOTIFICATION_MESSAGE = "How are you feeling today?"
 
@@ -26,6 +27,7 @@ def send_daily_push_notifications():
 
     profiles = Profile.objects.filter(is_active=True, last_am_push__lte=hours_ago_23, am__lte=hour)
     for p in profiles:
-        send_push_notification.delay(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE)
+        #send_push_notification.delay(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE)
+        send_push_notification(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE)
 
 
