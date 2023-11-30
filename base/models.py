@@ -383,6 +383,7 @@ def generate_question_instances(pk):
 class PushType(IntEnum):
     AM = 1
     PM = 2
+    XM = 3
 
 @shared_task
 def send_push_notification(pk, push_type, message):
@@ -399,6 +400,8 @@ def send_push_notification(pk, push_type, message):
         elif push_type == PushType.PM:
             if profile.last_pm_push < six_hours_ago and hour >= profile.pm:
                 send_push_message(token[0].token, message, profile, now, push_type)
+        elif push_type == PushType.XM:
+            send_push_message(token[0].token, message, profile, now, push_type)
 
 # Basic arguments. You should extend this function with the push features you
 # want to use, or simply pass in a `PushMessage` object.

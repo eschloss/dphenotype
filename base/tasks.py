@@ -34,6 +34,6 @@ def send_daily_push_notifications():
 def send_push_notifications():
     profiles = Profile.objects.filter(is_active=True)
     for p in profiles:
-        send_push_notification(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE)
+        send_push_notification(p.pk, int(PushType.XM), DAILY_NOTIFICATION_MESSAGE)
 
 
