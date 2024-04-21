@@ -227,6 +227,38 @@ def set_question_instance(request):
         return HttpResponse(json.dumps({"success": True}), content_type='application/json')
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
 
+def set_question_instance_ff(request):
+    data = json.loads(request.body.decode('utf-8'))
+    if data.__contains__("user_id"):
+        try:
+            profile = Profile.objects.get(user_id=data["user_id"])
+        except:
+            return HttpResponse(json.dumps({"success": False}), content_type='application/json')
+
+        for key, val in data['answers'].items():
+            try:
+                if re.search(r'^mc_|^ft_|^n_', key) and val:
+                    qid = re.search(r'_([^_]*$)', key).group(1)
+                    answer = val
+                    if re.search(r'^mc_', key):
+                        instance = MultipleChoiceQuestionInstance.objects.get(pk=qid, profile=profile)
+                        if val == 'o':
+                            answer = -1
+                            if 'mco_%s' % qid in data['answers']:
+                                instance.other_value = data['answers']['mco_%s' % qid]
+                    elif re.search(r'^ft_', key):
+                        instance = FreeTextQuestionInstance.objects.get(pk=qid, profile=profile)
+                    elif re.search(r'^n_', key):
+                        instance = NumberQuestionInstance.objects.get(pk=qid, profile=profile)
+                    instance.value = answer
+                    instance.answered = datetime.datetime.utcnow()
+                    instance.save()
+            except:
+                print("ERROR: BAD POST DATA SENT TO SERVER")
+
+        return HttpResponse(json.dumps({"success": True}), content_type='application/json')
+    return HttpResponse(json.dumps({"success": False}), content_type='application/json')
+
 def set_notification_token(request):
     if request.GET.__contains__("user_id"):
         profile = Profile.objects.get(user_id=request.GET["user_id"])

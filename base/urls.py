@@ -20,6 +20,7 @@ from base import views
 urlpatterns = [
     path('', views.home),
     path('gather_question_instances/', views.gather_question_instances),
+    path('gather_question_instances_ff/', views.gather_question_instances_ff),
     path('set_notification_token/', views.set_notification_token),
     path('set_question_instance/', views.set_question_instance),
     path('set_emoji/', views.set_emoji),
