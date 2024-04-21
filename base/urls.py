@@ -20,9 +20,9 @@ from base import views
 urlpatterns = [
     path('', views.home),
     path('gather_question_instances/', views.gather_question_instances),
-    path('gather_question_instances_ff/', views.gather_question_instances_ff),
     path('set_notification_token/', views.set_notification_token),
     path('set_question_instance/', views.set_question_instance),
+    path('set_question_instance_ff/', views.set_question_instance_ff),
     path('set_emoji/', views.set_emoji),
     path('get_past_emojis/', views.get_past_emojis),
     path('get_average_emojis/', views.get_average_emojis),
