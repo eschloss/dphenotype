@@ -203,7 +203,11 @@ def set_question_instance(request):
         except:
             return HttpResponse(json.dumps({"success": False}), content_type='application/json')
 
-        for key, val in data['answers'].items():
+        answers = data['answers']
+        if isinstance(answers, str):
+            answers = json.loads(answers)
+
+        for key, val in answers.items():
             try:
                 if re.search(r'^mc_|^ft_|^n_', key) and val:
                     qid = re.search(r'_([^_]*$)', key).group(1)
