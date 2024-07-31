@@ -82,6 +82,8 @@ class Profile(models.Model):
 
         if generate_questions:
             generate_question_instances(self.pk)
+        if about_to_add:
+            generate_question_instances(self.pk)
 
 
 class Emoji(models.Model):
