@@ -321,12 +321,12 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
     send_notification = False
 
     if last_questioninstance.count() == 0:
-        if now > profile.created + datetime.timedelta(days=questionTemplate.start_days) - datetime.timedelta(hours=2): #start_days
-            if (not questionTemplate.frequency_time or \
+        if questionTemplate.start_days == 0 or now > profile.created + datetime.timedelta(days=questionTemplate.start_days) - datetime.timedelta(hours=2): #start_days
+            """if (not questionTemplate.frequency_time or \
                 questionTemplate.frequency_time == 'a' and hour > profile.am or \
                 questionTemplate.frequency_time == 'p' and hour > profile.pm or \
-                questionTemplate.frequency_time == 'r' and hour > profile.next_random):
-                save_new_instance = True
+                questionTemplate.frequency_time == 'r' and hour > profile.next_random):"""
+            save_new_instance = True
 
     else:
         if not questionTemplate.one_time_only:
