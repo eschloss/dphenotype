@@ -19,6 +19,11 @@ from exponent_server_sdk import (
     PushTicketError,
 )
 from requests.exceptions import ConnectionError, HTTPError
+import onesignal
+from onesignal.api import default_api
+from onesignal.model.notification import Notification
+from config.settings import ONESIGNAL_APP_KEY, ONESIGNAL_USER_KEY, ONESIGNAL_APP_ID
+
 
 
 
@@ -391,66 +396,107 @@ class PushType(IntEnum):
 def send_push_notification(pk, push_type, message):
     profile = get_object_or_404(Profile, pk=pk)
     token = ExpoPushToken.objects.filter(profile=profile)
-    if len(token) > 0:
-        now = datetime.datetime.now(tz=EST5EDT())
-        six_hours_ago = now - datetime.timedelta(hours=6)
-        hour = now.hour + now.minute / 60
+    if len(token) == 0:
+        token = None
+    else:
+        token = token[0].token
 
-        if push_type == PushType.AM:
-            if profile.last_am_push < six_hours_ago and hour >= profile.am:
-                send_push_message(token[0].token, message, profile, now, push_type)
-        elif push_type == PushType.PM:
-            if profile.last_pm_push < six_hours_ago and hour >= profile.pm:
-                send_push_message(token[0].token, message, profile, now, push_type)
-        elif push_type == PushType.XM:
-            send_push_message(token[0].token, message, profile, now, push_type)
+    now = datetime.datetime.now(tz=EST5EDT())
+    six_hours_ago = now - datetime.timedelta(hours=6)
+    hour = now.hour + now.minute / 60
+
+    if push_type == PushType.AM:
+        if profile.last_am_push < six_hours_ago and hour >= profile.am:
+            send_push_message(token, message, profile, now, push_type)
+    elif push_type == PushType.PM:
+        if profile.last_pm_push < six_hours_ago and hour >= profile.pm:
+            send_push_message(token, message, profile, now, push_type)
+    elif push_type == PushType.XM:
+        send_push_message(token, message, profile, now, push_type)
+
+
+
+def send_onesignal_push_notification_task(external_id, en_title="title", en_body="body"):
+        configuration = onesignal.Configuration(
+            app_key=ONESIGNAL_APP_KEY,
+            user_key=ONESIGNAL_USER_KEY
+        )
+
+        with onesignal.ApiClient(configuration) as api_client:
+            # Create an instance of the API class
+            api_instance = default_api.DefaultApi(api_client)
+
+            notification = Notification(
+                app_id=ONESIGNAL_APP_ID,
+                include_external_user_ids=[external_id],
+                contents={
+                    "en": en_body,
+                },
+                headings={
+                    "en": en_title,
+                },
+            )
+
+            try:
+                # Create notification
+                api_response = api_instance.create_notification(notification)
+                return True
+            except onesignal.ApiException as e:
+                return False
 
 # Basic arguments. You should extend this function with the push features you
 # want to use, or simply pass in a `PushMessage` object.
 def send_push_message(token, message, profile, now, push_type, extra=None):
     try:
-        response = PushClient().publish(
-            PushMessage(to=token,
-                        body=message,
-                        data=extra))
+        send_onesignal_push_notification_task(profile.user_id, en_title=message, en_body=body)
+    except:
+        pass
+
+    if token:
+        try:
+            response = PushClient().publish(
+                PushMessage(to=token,
+                            body=message,
+                            data=extra))
+        except PushServerError as exc:
+            # Encountered some likely formatting/validation error.
+            rollbar.report_exc_info(
+                extra_data={
+                    'token': token,
+                    'message': message,
+                    'extra': extra,
+                    'errors': exc.errors,
+                    'response_data': exc.response_data,
+                })
+            raise
+        except (ConnectionError, HTTPError) as exc:
+            # Encountered some Connection or HTTP error - retry a few times in
+            # case it is transient.
+            rollbar.report_exc_info(
+                extra_data={'token': token, 'message': message, 'extra': extra})
+            raise self.retry(exc=exc)
+
         if push_type == PushType.AM:
             profile.last_am_push = now
         elif push_type == PushType.PM:
             profile.last_pm_push = now
         profile.save(generate_questions=False)
-    except PushServerError as exc:
-        # Encountered some likely formatting/validation error.
-        rollbar.report_exc_info(
-            extra_data={
-                'token': token,
-                'message': message,
-                'extra': extra,
-                'errors': exc.errors,
-                'response_data': exc.response_data,
-            })
-        raise
-    except (ConnectionError, HTTPError) as exc:
-        # Encountered some Connection or HTTP error - retry a few times in
-        # case it is transient.
-        rollbar.report_exc_info(
-            extra_data={'token': token, 'message': message, 'extra': extra})
-        raise self.retry(exc=exc)
 
-    try:
-        # We got a response back, but we don't know whether it's an error yet.
-        # This call raises errors so we can handle them with normal exception
-        # flows.
-        response.validate_response()
-    except DeviceNotRegisteredError:
-        # Mark the push token as inactive
-        ExpoPushToken.objects.filter(token=token).update(active=False)
-    except PushTicketError as exc:
-        # Encountered some other per-notification error.
-        rollbar.report_exc_info(
-            extra_data={
-                'token': token,
-                'message': message,
-                'extra': extra,
-                'push_response': exc.push_response._asdict(),
-            })
-        raise self.retry(exc=exc)
+        try:
+            # We got a response back, but we don't know whether it's an error yet.
+            # This call raises errors so we can handle them with normal exception
+            # flows.
+            response.validate_response()
+        except DeviceNotRegisteredError:
+            # Mark the push token as inactive
+            ExpoPushToken.objects.filter(token=token).update(active=False)
+        except PushTicketError as exc:
+            # Encountered some other per-notification error.
+            rollbar.report_exc_info(
+                extra_data={
+                    'token': token,
+                    'message': message,
+                    'extra': extra,
+                    'push_response': exc.push_response._asdict(),
+                })
+            raise self.retry(exc=exc)

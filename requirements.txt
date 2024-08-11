@@ -6,3 +6,4 @@ gevent==20.12.1
 redis==3.5.3
 celery[sqs]==5.0.5
 exponent_server_sdk==2.0.0
+onesignal-python-api
