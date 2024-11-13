@@ -36,7 +36,7 @@ except:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not IS_PRODUCTION
 
-ALLOWED_HOSTS = ['dphenotype.herokuapp.com', 'localhost']
+ALLOWED_HOSTS = ['pact-5d2526c27f89.herokuapp.com/', 'localhost']
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
