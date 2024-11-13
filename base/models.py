@@ -61,9 +61,13 @@ QUESTION_AUDIENCE_TYPE = (
     ('c', 'caregiver ONLY'),
 )
 
+class Project(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
 
 class Profile(models.Model):
     user_id = models.CharField(max_length=100, unique=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     type = models.CharField(choices=ACCOUNT_TYPE, max_length=1)
     am = models.FloatField(default=8, help_text="Military time in US Eastern time")
@@ -98,6 +102,7 @@ class Emoji(models.Model):
 
 
 class QuestionSection(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)
     section_name = models.CharField(max_length=100, help_text="only for internal use")
     text = models.TextField(blank=True)
     order = models.IntegerField(default=0)
@@ -112,6 +117,7 @@ class QuestionSection(models.Model):
 
 
 class QuestionGroup(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)
     group_name = models.CharField(max_length=100, help_text="only for internal use")
     question_section = models.ForeignKey("QuestionSection", blank=True, null=True, on_delete=models.CASCADE)
     text = models.TextField(blank=True)
@@ -130,6 +136,7 @@ TIMES_CHOICES = (
 
 
 class QuestionTemplate(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)
     text = models.TextField(blank=True)
     question_group = models.ForeignKey("QuestionGroup", blank=True, null=True, on_delete=models.CASCADE)
     order = models.IntegerField(default=0)
@@ -309,6 +316,7 @@ class ExpoPushToken(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
 class ValidStudyID(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)
     study_id = models.CharField(max_length=60)
     type = models.CharField(choices=ACCOUNT_TYPE, max_length=1, default='y')
 

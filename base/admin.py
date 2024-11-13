@@ -35,6 +35,9 @@ class PassiveDataAdmin(admin.ModelAdmin):
     list_display = ('profile', 'type', 'time', 'unique_id', 'added')
     list_filter = ('type', 'profile',)
 
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+
 admin.site.register(Profile)
 admin.site.register(Emoji, EmojiAdmin)
 admin.site.register(QuestionSection, QuestionSectionAdmin)
@@ -48,4 +51,5 @@ admin.site.register(FreeTextQuestionInstance, QuestionInstanceAdmin)
 admin.site.register(ExpoPushToken, ExpoPushTokenAdmin)
 admin.site.register(ValidStudyID, ValidStudyIDAdmin)
 admin.site.register(PassiveData, PassiveDataAdmin)
+admin.site.register(Project, ProjectAdmin)
 
