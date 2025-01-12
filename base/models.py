@@ -382,15 +382,15 @@ def generate_question_instances(pk):
     profile = Profile.objects.get(pk=pk)
 
     for mct in MultipleChoiceQuestionTemplate.objects \
-            .filter(who_receives__in=('b', profile.type)) \
+            .filter(who_receives__in=('b', profile.type), project=profile.project) \
             .exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, mct, MultipleChoiceQuestionInstance)
     for ftt in FreeTextQuestionTemplate.objects \
-            .filter(who_receives__in=('b', profile.type)) \
+            .filter(who_receives__in=('b', profile.type), project=profile.project) \
             .exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, ftt, FreeTextQuestionInstance)
     for nt in NumberQuestionTemplate.objects \
-            .filter(who_receives__in=('b', profile.type)) \
+            .filter(who_receives__in=('b', profile.type), project=profile.project) \
             .exclude(question_group__question_section__is_dependent_on_question=True):
         create_question_instance_if_needed(profile, nt, NumberQuestionInstance)
 
