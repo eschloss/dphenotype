@@ -16,6 +16,7 @@ def login(request):
             studyID = ValidStudyID.objects.filter(study_id=request.GET["user_id"])[0]
             profile, is_new = Profile.objects.get_or_create(user_id=request.GET["user_id"])
             profile.type = studyID.type
+            profile.project = studyID.project
             profile.save()
             return HttpResponse(json.dumps({"success": True, "is_new": is_new }), content_type='application/json')
     return HttpResponse(json.dumps({"success": False}), content_type='application/json')
