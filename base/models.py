@@ -52,13 +52,13 @@ EMOJI_CHOICES = (
 )
 
 ACCOUNT_TYPE = (
-    ('y', 'youth'),
-    ('c', 'caretaker'),
+    ('y', 'Please Ignore'),
+    ('c', 'Please Ignore2'),
 )
 QUESTION_AUDIENCE_TYPE = (
-    ('y', 'youth'),
-    ('b', 'both youth and caretaker'),
-    ('c', 'caregiver ONLY'),
+    ('y', 'Please Ignore'),
+    ('b', 'Please Ignore2'),
+    ('c', 'Please Ignore3'),
 )
 
 class Project(models.Model):
@@ -149,7 +149,7 @@ class QuestionTemplate(models.Model):
     frequency_time = models.CharField(choices=TIMES_CHOICES, blank=True, null=True, max_length=1)
     threshold = models.TextField(default="", help_text="comma separated list of threshold triggering words", blank=True, null=True)
     send_notification = models.BooleanField(default=False, help_text="does a notification go out for this particular question?")
-    who_receives = models.CharField(choices=QUESTION_AUDIENCE_TYPE, max_length=1)
+    who_receives = models.CharField(choices=QUESTION_AUDIENCE_TYPE, max_length=1, default="b")
     always_available = models.BooleanField(default=False, help_text="Does a new Instance get created right after the instance is answered?")
     is_dependent_on_question = models.BooleanField(default=False, help_text="Is this question dependent on the answer to other questions?")
     dependent_question = models.ForeignKey("MultipleChoiceQuestionTemplate", blank=True, null=True, help_text="Choose the dependent question", on_delete=models.CASCADE)

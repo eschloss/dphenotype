@@ -18,6 +18,7 @@ def generate_question_instances_for_all_profiles():
         generate_question_instances(p.pk)
 
 DAILY_NOTIFICATION_MESSAGE = "How are you feeling?"
+DAILY_NOTIFICATION_MESSAGE_PT = "Como você está se sentindo hoje?"
 
 @shared_task
 def send_daily_push_notifications():
@@ -28,7 +29,10 @@ def send_daily_push_notifications():
     profiles = Profile.objects.filter(is_active=True, last_am_push__lte=hours_ago_23, am__lte=hour)
     for p in profiles:
         #send_push_notification.delay(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE)
-        send_push_notification(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE)
+        if p.project.pk == 2: # Brazil
+            send_push_notification(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE_PT)
+        else: # Uganda pk==1, South Africa pk==3
+            send_push_notification(p.pk, int(PushType.AM), DAILY_NOTIFICATION_MESSAGE)
 
 @shared_task
 def send_push_notifications():
