@@ -1,5 +1,5 @@
 from django.contrib import admin
-from base.models import send_push_notification, PushType
+from base.models import *
 
 
 class QuestionSectionAdmin(admin.ModelAdmin):

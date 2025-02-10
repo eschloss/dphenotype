@@ -430,7 +430,7 @@ def send_push_notification(pk, push_type, message):
 def send_onesignal_push_notification_task(external_id, en_title="title", en_body="body"):
         configuration = onesignal.Configuration(
             app_key=ONESIGNAL_APP_KEY,
-            user_key=ONESIGNAL_USER_KEY
+            #user_key=ONESIGNAL_USER_KEY
         )
 
         with onesignal.ApiClient(configuration) as api_client:
