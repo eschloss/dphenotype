@@ -36,7 +36,7 @@ class ValidStudyIDAdmin(admin.ModelAdmin):
 
 class PassiveDataAdmin(admin.ModelAdmin):
     list_display = ('profile', 'type', 'time', 'unique_id', 'added')
-    list_filter = ('type', 'profile',)
+    #list_filter = ('type', 'profile',)
 
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name',)
