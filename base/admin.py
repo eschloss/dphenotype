@@ -1,6 +1,5 @@
 from django.contrib import admin
 from base.models import *
-from base.tasks import send_push_notification
 
 
 class QuestionSectionAdmin(admin.ModelAdmin):
@@ -17,12 +16,12 @@ class QuestionInstanceAdmin(admin.ModelAdmin):
 
 def send_notification(modeladmin, request, queryset):
     for q in queryset:
-        send_push_notification(q.profile.pk)
+        send_push_notification(q.profile.pk, PushType.XM, "test notification")
 send_notification.short_description = "Send Notification"
 
 class ExpoPushTokenAdmin(admin.ModelAdmin):
     list_display = ('profile', 'token')
-    actions = (send_notification, )
+    actions = ()
 
 class EmojiAdmin(admin.ModelAdmin):
     list_display = ('profile', 'emoji', 'created',)

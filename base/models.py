@@ -448,7 +448,13 @@ def send_onesignal_push_notification_task(external_id, en_title="title", en_body
 # want to use, or simply pass in a `PushMessage` object.
 def send_push_message(token, message, profile, now, push_type, extra=None):
     try:
-        send_onesignal_push_notification_task(profile.user_id, en_title=message, en_body=body)
+        send_onesignal_push_notification_task(profile.user_id, en_title=message, en_body=message)
+
+        if push_type == PushType.AM:
+            profile.last_am_push = now
+        elif push_type == PushType.PM:
+            profile.last_pm_push = now
+        profile.save(generate_questions=False)
     except:
         pass
 
