@@ -16,7 +16,7 @@ class QuestionInstanceAdmin(admin.ModelAdmin):
 
 def send_notification(modeladmin, request, queryset):
     for q in queryset:
-        send_push_notification(q.profile.pk, PushType.XM, "test notification")
+        send_push_notification(q.pk, PushType.XM, "test notification")
 send_notification.short_description = "Send Notification"
 
 class ExpoPushTokenAdmin(admin.ModelAdmin):
