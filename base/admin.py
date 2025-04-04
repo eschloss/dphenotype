@@ -23,6 +23,10 @@ class ExpoPushTokenAdmin(admin.ModelAdmin):
     list_display = ('profile', 'token')
     actions = ()
 
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user_id', 'last_am_push')
+    actions = (send_notification,)
+
 class EmojiAdmin(admin.ModelAdmin):
     list_display = ('profile', 'emoji', 'created',)
 
@@ -34,7 +38,7 @@ class PassiveDataAdmin(admin.ModelAdmin):
     list_display = ('profile', 'type', 'time', 'unique_id', 'added')
     list_filter = ('type', 'profile',)
 
-admin.site.register(Profile)
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Emoji, EmojiAdmin)
 admin.site.register(QuestionSection, QuestionSectionAdmin)
 admin.site.register(QuestionGroup, QuestionGroupAdmin)
@@ -44,7 +48,7 @@ admin.site.register(FreeTextQuestionTemplate)
 admin.site.register(MultipleChoiceQuestionInstance, QuestionInstanceAdmin)
 admin.site.register(NumberQuestionInstance, QuestionInstanceAdmin)
 admin.site.register(FreeTextQuestionInstance, QuestionInstanceAdmin)
-admin.site.register(ExpoPushToken, ExpoPushTokenAdmin)
+#admin.site.register(ExpoPushToken, ExpoPushTokenAdmin)
 admin.site.register(ValidStudyID, ValidStudyIDAdmin)
 admin.site.register(PassiveData, PassiveDataAdmin)
 
