@@ -368,9 +368,9 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
             if questionTemplate.frequency_days and now > last_questioninstance.created + datetime.timedelta(days=questionTemplate.frequency_days) - datetime.timedelta(hours=2):
                 if last_questioninstance.value and now > last_questioninstance.answered + datetime.timedelta(hours=23):
                     if (not questionTemplate.frequency_time or \
-                        questionTemplate.frequency_time == 'a' and hour > profile.am or \
-                        questionTemplate.frequency_time == 'p' and hour > profile.pm or \
-                        questionTemplate.frequency_time == 'r' and hour > profile.next_random):
+                        questionTemplate.frequency_time == 'a' and hour >= profile.am or \
+                        questionTemplate.frequency_time == 'p' and hour >= profile.pm or \
+                        questionTemplate.frequency_time == 'r'):
                         save_new_instance = True
 
                 if questionTemplate.send_notification and \
