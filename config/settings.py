@@ -159,6 +159,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 THRESHOLD_EMAIL = os.environ.get('THRESHOLD_EMAIL', '')
+MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY', '')
 
 try:
     CELERY_BROKER_URL = os.environ['CLOUDAMQP_URL']

@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models import Sum
 import datetime
 import math
+from config.settings import MAILGUN_API_KEY
+import os, requests
 import random
 from base.eastern_time import EST5EDT
 from decimal import Decimal
@@ -224,9 +226,17 @@ class QuestionInstance(models.Model):
                     message += f"Question Template ID: { self.question_template.pk }\n"
                     message += f"Question Instance ID: { self.pk }\n"
                     message += f"Answer: { self.value }\n\n"
+                    """
                     send_mail(f"Threshold Triggered for Participant {self.profile.user_id}",
                               message, "info@dphenotype.herokuapp.com",
                               [THRESHOLD_EMAIL,], fail_silently=True)
+                    """
+                    requests.post(
+                        "https://api.mailgun.net/v3/sandbox7e7f3635ddb14d70a85e215ec1d80fc2.mailgun.org/messages",
+                        auth=("api", MAILGUN_API_KEY), data={
+                            "from": "Geomood App <geomood.threshold@dphenotype.herokuapp.com>",
+                            "to": "orpheuskl@gmail.com", "subject": f"Threshold Triggered for Participant {self.profile.user_id}",
+                            "text": message })
 
 
 class MultipleChoiceQuestionInstance(QuestionInstance):
