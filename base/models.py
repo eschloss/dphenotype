@@ -20,6 +20,7 @@ from exponent_server_sdk import (
     PushServerError,
     PushTicketError,
 )
+import logging
 from requests.exceptions import ConnectionError, HTTPError
 import onesignal
 from onesignal.api import default_api
@@ -221,6 +222,7 @@ class QuestionInstance(models.Model):
             threshold_options = map(lambda a: a.strip(), self.question_template.threshold.split(","))
             for threshold_option in threshold_options:
                 if threshold_option in str(self.value):
+                    logging.error("THRESHOLD_HIT: EMAIL ABOUT TO SEND")
                     message = f"participant study id = { self.profile.user_id }\n\n"
                     message += f"Question: { self.question_template }\n"
                     message += f"Question Template ID: { self.question_template.pk }\n"
@@ -237,6 +239,7 @@ class QuestionInstance(models.Model):
                             "from": "Geomood App <geomood.threshold@dphenotype.herokuapp.com>",
                             "to": THRESHOLD_EMAIL, "subject": f"Threshold Triggered for Participant {self.profile.user_id}",
                             "text": message })
+                    logging.error("THRESHOLD_HIT: EMAIL SENT")
 
 
 class MultipleChoiceQuestionInstance(QuestionInstance):
