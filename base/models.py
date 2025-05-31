@@ -235,7 +235,7 @@ class QuestionInstance(models.Model):
                         "https://api.mailgun.net/v3/sandbox7e7f3635ddb14d70a85e215ec1d80fc2.mailgun.org/messages",
                         auth=("api", MAILGUN_API_KEY), data={
                             "from": "Geomood App <geomood.threshold@dphenotype.herokuapp.com>",
-                            "to": "orpheuskl@gmail.com", "subject": f"Threshold Triggered for Participant {self.profile.user_id}",
+                            "to": THRESHOLD_EMAIL, "subject": f"Threshold Triggered for Participant {self.profile.user_id}",
                             "text": message })
 
 
