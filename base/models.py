@@ -228,6 +228,20 @@ class QuestionInstance(models.Model):
                     message += f"Question Template ID: { self.question_template.pk }\n"
                     message += f"Question Instance ID: { self.pk }\n"
                     message += f"Answer: { self.value }\n\n"
+
+                    if type(self.question_template) == MultipleChoiceQuestionTemplate:
+                        message += f"1= { self.question_template.multiple_choice1 }\n"
+                        message += f"2= {self.question_template.multiple_choice2}\n"
+                        message += f"3= {self.question_template.multiple_choice3}\n"
+                        message += f"4= {self.question_template.multiple_choice4}\n"
+                        message += f"5= {self.question_template.multiple_choice5}\n"
+                        message += f"6= {self.question_template.multiple_choice6}\n"
+                        message += f"7= {self.question_template.multiple_choice7}\n"
+                        message += f"8= {self.question_template.multiple_choice8}\n"
+                        message += f"9= {self.question_template.multiple_choice9}\n"
+                        message += f"10= {self.question_template.multiple_choice10}\n"
+                        message += f"11= {self.question_template.multiple_choice11}\n"
+                        message += f"12= {self.question_template.multiple_choice12}\n\n"
                     """
                     send_mail(f"Threshold Triggered for Participant {self.profile.user_id}",
                               message, "info@dphenotype.herokuapp.com",
