@@ -365,8 +365,8 @@ def create_question_instance_if_needed(profile, questionTemplate, QuestionInstan
     else:
         if not questionTemplate.one_time_only:
             last_questioninstance = last_questioninstance[0]
-            if questionTemplate.frequency_days and now > last_questioninstance.created + datetime.timedelta(days=questionTemplate.frequency_days) - datetime.timedelta(hours=2):
-                if last_questioninstance.value and now > last_questioninstance.answered + datetime.timedelta(hours=23):
+            if questionTemplate.frequency_days and now > last_questioninstance.created + datetime.timedelta(days=questionTemplate.frequency_days) - datetime.timedelta(hours=12):
+                if last_questioninstance.value and now > last_questioninstance.answered + datetime.timedelta(hours=8):
                     if (not questionTemplate.frequency_time or \
                         questionTemplate.frequency_time == 'a' and hour >= profile.am or \
                         questionTemplate.frequency_time == 'p' and hour >= profile.pm or \
